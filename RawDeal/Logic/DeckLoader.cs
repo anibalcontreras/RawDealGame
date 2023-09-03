@@ -3,63 +3,93 @@ using RawDeal.Models;
 namespace RawDeal.Logic;
 public static class DeckLoader
 {
-    private static Dictionary<string, Card> allAvailableCards = new Dictionary<string, Card>();
-    private static Dictionary<string, Superstar> allAvailableSuperstars = new Dictionary<string, Superstar>();
+    private static readonly Dictionary<string, Card> allAvailableCards = new Dictionary<string, Card>();
+    private static readonly Dictionary<string, Superstar> allAvailableSuperstars = new Dictionary<string, Superstar>();
+    private const string SuperstarCardSuffix = " (Superstar Card)";
 
     public static void InitializeDeckLoader()
     {
-        var cards = CardLoader.LoadCardsFromJson();
-        var superstars = SuperstarLoader.LoadSuperstarsFromJson();
+        LoadAllCards();
+        LoadAllSuperstars();
+    }
 
+    public static Deck LoadDeck(string path)
+    {
+        ValidateFile(path);
+        var lines = File.ReadAllLines(path);
+        ValidateLines(lines, path);
+
+        return CreateDeckFromLines(lines);
+    }
+
+    private static void LoadAllCards()
+    {
+        var cards = CardLoader.LoadCardsFromJson();
         foreach (var card in cards)
         {
             allAvailableCards[card.Title] = card;
         }
+    }
 
+    private static void LoadAllSuperstars()
+    {
+        var superstars = SuperstarLoader.LoadSuperstarsFromJson();
         foreach (var superstar in superstars)
         {
             allAvailableSuperstars[superstar.Name] = superstar;
         }
     }
-    public static Deck LoadDeck(string path)
+
+    private static void ValidateFile(string path)
     {
         if (!File.Exists(path))
+        {
             throw new FileNotFoundException($"El archivo {path} no fue encontrado.");
+        }
+    }
 
-        var lines = File.ReadAllLines(path);
+    private static void ValidateLines(string[] lines, string path)
+    {
         if (lines.Length == 0)
+        {
             throw new Exception($"El archivo {path} está vacío.");
+        }
+    }
 
+    private static Deck CreateDeckFromLines(string[] lines)
+    {
         var deck = new Deck
         {
-            Superstar = GetSuperstarByName(lines[0].Replace(" (Superstar Card)", "")),
+            Superstar = GetSuperstarByName(lines[0].Replace(SuperstarCardSuffix, "")),
             Cards = new List<Card>()
         };
 
-        for (int i = 1; i < lines.Length; i++)
-        {
-            var cardTitle = lines[i];
-            if (allAvailableCards.ContainsKey(cardTitle))
-            {
-                deck.Cards.Add(allAvailableCards[cardTitle]);
-            }
-            else
-            {
-                Console.WriteLine($"Advertencia: La card '{cardTitle}' no se encontró en las cartas disponibles.");
-            }
-        }
+        AddCardsToDeck(deck, lines[1..]);
+
         return deck;
     }
 
     private static Superstar GetSuperstarByName(string name)
     {
-        if (allAvailableSuperstars.ContainsKey(name))
+        if (allAvailableSuperstars.TryGetValue(name, out var superstar))
         {
-            return allAvailableSuperstars[name];
+            return superstar;
         }
-        else
+        throw new Exception($"Superstar {name} no encontrado.");
+    }
+
+    private static void AddCardsToDeck(Deck deck, string[] cardLines)
+    {
+        foreach (var cardTitle in cardLines)
         {
-            throw new Exception($"Superstar {name} no encontrado.");
+            if (allAvailableCards.TryGetValue(cardTitle, out var card))
+            {
+                deck.Cards.Add(card);
+            }
+            else
+            {
+                Console.WriteLine($"Advertencia: La card '{cardTitle}' no se encontró en las cartas disponibles.");
+            }
         }
     }
 }
