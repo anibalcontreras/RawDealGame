@@ -20,16 +20,16 @@ public class Game
 
     public void Play()
     {
-        DeckLoader.InitializeDeckLoader();
-        var allAvailableSuperstars = SuperstarLoader.LoadSuperstarsIntoDictionary();
+        InitializeGame();
+        // var allAvailableSuperstars = SuperstarLoader.LoadSuperstarsIntoDictionary();
 
-        Deck firstDeck = GetAndValidateDeck(allAvailableSuperstars);
+        Deck firstDeck = GetAndValidateDeck();
         if (firstDeck == null)
         {
             return;
         }
 
-        Deck secondDeck = GetAndValidateDeck(allAvailableSuperstars);
+        Deck secondDeck = GetAndValidateDeck();
         if (secondDeck == null)
         {
             return;
@@ -38,20 +38,30 @@ public class Game
         StartGame(firstDeck, secondDeck);
     }
 
-    private Deck GetAndValidateDeck(Dictionary<string, Superstar> allAvailableSuperstars)
+    private void InitializeGame()
     {
+        DeckLoader.InitializeDeckLoader();
+    }
+
+    private Deck GetAndValidateDeck()
+    {
+        var allAvailableSuperstars = SuperstarLoader.LoadSuperstarsIntoDictionary();
         string deckPath = _view.AskUserToSelectDeck(_deckFolder);
         Deck deck = DeckLoader.LoadDeck(deckPath);
         var validationResult = DeckValidator.IsValidDeck(deck, allAvailableSuperstars);
 
-        if (!validationResult.IsValid)
-        {
-            _view.SayThatDeckIsInvalid();
-            return null;
-        }
-
-        return deck;
+        return validationResult.IsValid ? deck : null;
     }
+
+    // private Deck GetAndValidateDeck()
+    // {
+    //     var allAvailableSuperstars = SuperstarLoader.LoadSuperstarsIntoDictionary();
+    //     string deckPath = _view.AskUserToSelectDeck(_deckFolder);
+    //     Deck deck = DeckLoader.LoadDeck(deckPath);
+    //     var validationResult = DeckValidator.IsValidDeck(deck, allAvailableSuperstars);
+
+    //     return validationResult.IsValid ? deck : null;
+    // }
 
     private void StartGame(Deck firstDeck, Deck secondDeck)
     {
