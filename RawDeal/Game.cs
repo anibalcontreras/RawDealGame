@@ -6,12 +6,9 @@ namespace RawDeal;
 
 public class Game
 {
-    private View _view;
-    private string _deckFolder;
+    private readonly View _view;
+    private readonly string _deckFolder;
 
-    public List<Card> AvailableCards { get; private set; } = new List<Card>();
-    public List<Superstar> AvailableSuperstars { get; private set; } = new List<Superstar>();
-    
     public Game(View view, string deckFolder)
     {
         _view = view;
@@ -20,87 +17,84 @@ public class Game
 
     public void Play()
     {
-        DeckLoader.InitializeDeckLoader();
-        var allAvailableSuperstars = SuperstarLoader.LoadSuperstarsIntoDictionary();
+        InitializeGame();
 
-        Deck firstDeck = GetAndValidateDeck(allAvailableSuperstars);
+        var firstDeck = GetAndValidateDeck();
         if (firstDeck == null)
         {
-            return;
+        _view.SayThatDeckIsInvalid();
+        return;
         }
-
-        Deck secondDeck = GetAndValidateDeck(allAvailableSuperstars);
+        var secondDeck = GetAndValidateDeck();
         if (secondDeck == null)
         {
-            return;
+        _view.SayThatDeckIsInvalid();
+        return;
         }
-
         StartGame(firstDeck, secondDeck);
     }
 
-    private Deck GetAndValidateDeck(Dictionary<string, Superstar> allAvailableSuperstars)
+    private void InitializeGame()
     {
+        DeckLoader.InitializeDeckLoader();
+    }
+
+    private Deck GetAndValidateDeck()
+    {
+        var allAvailableSuperstars = SuperstarLoader.LoadSuperstarsIntoDictionary();
         string deckPath = _view.AskUserToSelectDeck(_deckFolder);
         Deck deck = DeckLoader.LoadDeck(deckPath);
         var validationResult = DeckValidator.IsValidDeck(deck, allAvailableSuperstars);
 
-        if (!validationResult.IsValid)
-        {
-            _view.SayThatDeckIsInvalid();
-            return null;
-        }
-
-        return deck;
+        return validationResult.IsValid ? deck : null;
     }
 
     private void StartGame(Deck firstDeck, Deck secondDeck)
     {
-        WhoStarts(firstDeck, secondDeck);
+        var startingPlayer = DetermineStartingPlayer(firstDeck, secondDeck);
 
         _view.AskUserWhatToDoWhenItIsNotPossibleToUseItsAbility();
 
-        WhoWins(firstDeck, secondDeck);
+        DetermineAndAnnounceWinner(firstDeck, secondDeck);
     }
 
-    private PlayerInfo WhoStarts(Deck firstDeck, Deck secondDeck)
+    private PlayerInfo DetermineStartingPlayer(Deck firstDeck, Deck secondDeck)
     {
-        PlayerInfo startingPlayer;
-        PlayerInfo otherPlayer;
+        return firstDeck.Superstar.SuperstarValue >= secondDeck.Superstar.SuperstarValue
+            ? InitializePlayerInfo(firstDeck, secondDeck)
+            : InitializePlayerInfo(secondDeck, firstDeck);
+    }
 
-        
-
-        if (firstDeck.Superstar.SuperstarValue >= secondDeck.Superstar.SuperstarValue)
-        {
-            startingPlayer = new PlayerInfo(firstDeck.Superstar.Name, 0, firstDeck.Superstar.HandSize + 1, 60 - firstDeck.Superstar.HandSize - 1);
-            otherPlayer = new PlayerInfo(secondDeck.Superstar.Name, 0, secondDeck.Superstar.HandSize, 60 - secondDeck.Superstar.HandSize);
-        }
-        else
-        {
-            startingPlayer = new PlayerInfo(secondDeck.Superstar.Name, 0, secondDeck.Superstar.HandSize + 1, 60 - secondDeck.Superstar.HandSize - 1);
-            otherPlayer = new PlayerInfo(firstDeck.Superstar.Name, 0, firstDeck.Superstar.HandSize, 60 - firstDeck.Superstar.HandSize);
-        }
+    private PlayerInfo InitializePlayerInfo(Deck winnerDeck, Deck loserDeck)
+    {
+        var startingPlayer = CreatePlayerInfoFromDeck(winnerDeck, extraHandSize: 1);
+        var otherPlayer = CreatePlayerInfoFromDeck(loserDeck);
 
         _view.SayThatATurnBegins(startingPlayer.Name);
         _view.ShowGameInfo(startingPlayer, otherPlayer);
+
         return startingPlayer;
+    }
+
+    private PlayerInfo CreatePlayerInfoFromDeck(Deck deck, int extraHandSize = 0)
+    {
+        return new PlayerInfo(
+            deck.Superstar.Name,
+            0,
+            deck.Superstar.HandSize + extraHandSize,
+            60 - deck.Superstar.HandSize - extraHandSize);
+    }
+
+    private void DetermineAndAnnounceWinner(Deck firstDeck, Deck secondDeck)
+    {
+        string winner = DetermineWinner(firstDeck, secondDeck);
+        _view.CongratulateWinner(winner);
     }
 
     private string DetermineWinner(Deck firstDeck, Deck secondDeck)
     {
-        if (firstDeck.Superstar.SuperstarValue >= secondDeck.Superstar.SuperstarValue)
-        {
-            return secondDeck.Superstar.Name;
-        }
-        else
-        {
-            return firstDeck.Superstar.Name;
-        }
-    }
-
-
-    private void WhoWins(Deck firstDeck, Deck secondDeck)
-    {
-        string winner = DetermineWinner(firstDeck, secondDeck);
-        _view.CongratulateWinner(winner);
+        return firstDeck.Superstar.SuperstarValue >= secondDeck.Superstar.SuperstarValue
+            ? secondDeck.Superstar.Name
+            : firstDeck.Superstar.Name;
     }
 }
