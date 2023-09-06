@@ -26,22 +26,12 @@ namespace RawDeal.Models
 
     public class Superstar
     {
-        public Superstar()
-        {
-            Name = string.Empty;
-            Logo = string.Empty;
-            HandSize = 0;
-            SuperstarValue = 0;
-            SuperstarAbility = string.Empty;
-            SuperstarCard = new Card();
-        }
-
-        public string Name { get; set; }
-        public string Logo { get; set; }
-        public int HandSize { get; set; }
-        public int SuperstarValue { get; set; }
-        public string SuperstarAbility { get; set; }
-        public Card SuperstarCard { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Logo { get; set; } = string.Empty;
+        public int HandSize { get; set; } = 0;
+        public int SuperstarValue { get; set; } = 0;
+        public string SuperstarAbility { get; set; } = string.Empty;
+        public Card SuperstarCard { get; set; } = new Card();
 
         public override string ToString()
         {

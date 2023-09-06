@@ -2,10 +2,10 @@ namespace RawDealView;
 
 public class PlayerInfo
 {
-    private string _superstarName;
-    private int _fortitudeRating;
-    private int _numberOfCardsInHand;
-    private int _numberOfCardsInArsenal;
+    private readonly string _superstarName;
+    private readonly int _fortitudeRating;
+    private readonly int _numberOfCardsInHand;
+    private readonly int _numberOfCardsInArsenal;
 
     public PlayerInfo(string superstarName, int fortitudeRating, int numberOfCardsInHand, int numberOfCardsInArsenal)
     {
@@ -17,7 +17,4 @@ public class PlayerInfo
 
     public override string ToString()
         => $"{_superstarName}: {_fortitudeRating}F, tiene {_numberOfCardsInHand} cartas en la mano y {_numberOfCardsInArsenal} en el arsenal.";
-
-    // Eliminar el método Name de la clase PlayerInfo cuando limpie el código
-    public string Name => _superstarName;
 }
