@@ -31,7 +31,18 @@ public class Game
         _view.SayThatDeckIsInvalid();
         return;
         }
-        StartGame(firstDeck, secondDeck);
+
+        var firstPlayer = new Player(firstDeck);
+        var secondPlayer = new Player(secondDeck);
+
+         // Inicializa las manos de los jugadores
+        for (int i = 0; i < firstPlayer.Superstar.HandSize; i++) firstPlayer.DrawCard();
+        for (int i = 0; i < secondPlayer.Superstar.HandSize; i++) secondPlayer.DrawCard();
+
+        var startingPlayer = DetermineStartingPlayer(firstPlayer, secondPlayer);
+
+        InitializeGameWithStartingPlayer(startingPlayer, startingPlayer == firstPlayer ? secondPlayer : firstPlayer);
+        // StartGame(firstDeck, secondDeck);
     }
 
     private void InitializeGame()
@@ -49,52 +60,68 @@ public class Game
         return validationResult.IsValid ? deck : null;
     }
 
-    private void StartGame(Deck firstDeck, Deck secondDeck)
+    // private void StartGame(Deck firstDeck, Deck secondDeck)
+    // {
+    //     var startingPlayer = DetermineStartingPlayer(firstDeck, secondDeck);
+
+    //     _view.AskUserWhatToDoWhenHeCannotUseHisAbility();
+
+    //     // DetermineAndAnnounceWinner(firstDeck, secondDeck);
+    // }
+
+    private Player DetermineStartingPlayer(Player firstPlayer, Player secondPlayer)
     {
-        var startingPlayer = DetermineStartingPlayer(firstDeck, secondDeck);
-
-        _view.AskUserWhatToDoWhenHeCannotUseHisAbility();
-
-        DetermineAndAnnounceWinner(firstDeck, secondDeck);
+        return firstPlayer.Superstar.SuperstarValue >= secondPlayer.Superstar.SuperstarValue ? firstPlayer : secondPlayer;
     }
 
-    private PlayerInfo DetermineStartingPlayer(Deck firstDeck, Deck secondDeck)
+    private void InitializeGameWithStartingPlayer(Player startingPlayer, Player otherPlayer)
     {
-        return firstDeck.Superstar.SuperstarValue >= secondDeck.Superstar.SuperstarValue
-            ? InitializePlayerInfo(firstDeck, secondDeck)
-            : InitializePlayerInfo(secondDeck, firstDeck);
+        startingPlayer.DrawCard();
+
+        var startingPlayerInfo = startingPlayer.ToPlayerInfo();
+        var otherPlayerInfo = otherPlayer.ToPlayerInfo();
+
+        _view.SayThatATurnBegins(startingPlayer.Superstar.Name);
+        _view.ShowGameInfo(startingPlayerInfo, otherPlayerInfo);
     }
 
-    private PlayerInfo InitializePlayerInfo(Deck winnerDeck, Deck loserDeck)
-    {
-        var startingPlayer = CreatePlayerInfoFromDeck(winnerDeck, extraHandSize: 1);
-        var otherPlayer = CreatePlayerInfoFromDeck(loserDeck);
+    // private PlayerInfo DetermineStartingPlayer(Deck firstDeck, Deck secondDeck)
+    // {
+    //     return firstDeck.Superstar.SuperstarValue >= secondDeck.Superstar.SuperstarValue
+    //         ? InitializePlayerInfo(firstDeck, secondDeck)
+    //         : InitializePlayerInfo(secondDeck, firstDeck);
+    // }
 
-        _view.SayThatATurnBegins(startingPlayer.Name);
-        _view.ShowGameInfo(startingPlayer, otherPlayer);
+    // private PlayerInfo InitializePlayerInfo(Deck winnerDeck, Deck loserDeck)
+    // {
+    //     var startingPlayer = CreatePlayerInfoFromDeck(winnerDeck, extraHandSize: 1);
+    //     var otherPlayer = CreatePlayerInfoFromDeck(loserDeck);
 
-        return startingPlayer;
-    }
+    //     _view.SayThatATurnBegins(startingPlayer.Name);
+    //     _view.ShowGameInfo(startingPlayer, otherPlayer);
 
-    private PlayerInfo CreatePlayerInfoFromDeck(Deck deck, int extraHandSize = 0)
-    {
-        return new PlayerInfo(
-            deck.Superstar.Name,
-            0,
-            deck.Superstar.HandSize + extraHandSize,
-            60 - deck.Superstar.HandSize - extraHandSize);
-    }
+    //     return startingPlayer;
+    // }
 
-    private void DetermineAndAnnounceWinner(Deck firstDeck, Deck secondDeck)
-    {
-        string winner = DetermineWinner(firstDeck, secondDeck);
-        _view.CongratulateWinner(winner);
-    }
+    // private PlayerInfo CreatePlayerInfoFromDeck(Deck deck, int extraHandSize = 0)
+    // {
+    //     return new PlayerInfo(
+    //         deck.Superstar.Name,
+    //         0,
+    //         deck.Superstar.HandSize + extraHandSize,
+    //         60 - deck.Superstar.HandSize - extraHandSize);
+    // }
 
-    private string DetermineWinner(Deck firstDeck, Deck secondDeck)
-    {
-        return firstDeck.Superstar.SuperstarValue >= secondDeck.Superstar.SuperstarValue
-            ? secondDeck.Superstar.Name
-            : firstDeck.Superstar.Name;
-    }
+    // private void DetermineAndAnnounceWinner(Deck firstDeck, Deck secondDeck)
+    // {
+    //     string winner = DetermineWinner(firstDeck, secondDeck);
+    //     _view.CongratulateWinner(winner);
+    // }
+
+    // private string DetermineWinner(Deck firstDeck, Deck secondDeck)
+    // {
+    //     return firstDeck.Superstar.SuperstarValue >= secondDeck.Superstar.SuperstarValue
+    //         ? secondDeck.Superstar.Name
+    //         : firstDeck.Superstar.Name;
+    // }
 }
