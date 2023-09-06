@@ -18,36 +18,27 @@ public class Game
     public void Play()
     {
         InitializeGame();
-
-        var firstDeck = GetAndValidateDeck();
-        if (firstDeck == null)
-        {
-        _view.SayThatDeckIsInvalid();
-        return;
-        }
-        var secondDeck = GetAndValidateDeck();
-        if (secondDeck == null)
-        {
-        _view.SayThatDeckIsInvalid();
-        return;
-        }
-
-        var firstPlayer = new Player(firstDeck);
-        var secondPlayer = new Player(secondDeck);
-
-         // Inicializa las manos de los jugadores
-        for (int i = 0; i < firstPlayer.Superstar.HandSize; i++) firstPlayer.DrawCard();
-        for (int i = 0; i < secondPlayer.Superstar.HandSize; i++) secondPlayer.DrawCard();
-
-        var startingPlayer = DetermineStartingPlayer(firstPlayer, secondPlayer);
-
-        InitializeGameWithStartingPlayer(startingPlayer, startingPlayer == firstPlayer ? secondPlayer : firstPlayer);
         // StartGame(firstDeck, secondDeck);
     }
 
     private void InitializeGame()
     {
         DeckLoader.InitializeDeckLoader();
+        
+        var firstDeck = InitializeFirstDeck();
+        if (firstDeck == null)
+            return;
+        var secondDeck = InitializeSecondDeck();
+        if (secondDeck == null)
+            return;
+        var firstPlayer = new Player(firstDeck);
+        var secondPlayer = new Player(secondDeck);
+
+        InitializePlayerHands(firstPlayer, secondPlayer);
+
+        var startingPlayer = DetermineStartingPlayer(firstPlayer, secondPlayer);
+
+        InitializeGameWithStartingPlayer(startingPlayer, startingPlayer == firstPlayer ? secondPlayer : firstPlayer);
     }
 
     private Deck GetAndValidateDeck()
@@ -60,19 +51,39 @@ public class Game
         return validationResult.IsValid ? deck : null;
     }
 
-    // private void StartGame(Deck firstDeck, Deck secondDeck)
-    // {
-    //     var startingPlayer = DetermineStartingPlayer(firstDeck, secondDeck);
+    private Deck? InitializeFirstDeck()
+    {
+        var firstDeck = GetAndValidateDeck();
+        if (firstDeck == null)
+        {
+            _view.SayThatDeckIsInvalid();
+        }
+        return firstDeck;
+    }
 
-    //     _view.AskUserWhatToDoWhenHeCannotUseHisAbility();
+    private Deck? InitializeSecondDeck()
+    {
+        var secondDeck = GetAndValidateDeck();
+        if (secondDeck == null)
+        {
+            _view.SayThatDeckIsInvalid();
+        }
+        return secondDeck;
+    }
 
-    //     // DetermineAndAnnounceWinner(firstDeck, secondDeck);
-    // }
 
     private Player DetermineStartingPlayer(Player firstPlayer, Player secondPlayer)
     {
         return firstPlayer.Superstar.SuperstarValue >= secondPlayer.Superstar.SuperstarValue ? firstPlayer : secondPlayer;
     }
+
+    private void InitializePlayerHands(Player firstPlayer, Player secondPlayer)
+    {
+        for (int i = 0; i < firstPlayer.Superstar.HandSize; i++) firstPlayer.DrawCard();
+        
+        for (int i = 0; i < secondPlayer.Superstar.HandSize; i++) secondPlayer.DrawCard();
+    }
+
 
     private void InitializeGameWithStartingPlayer(Player startingPlayer, Player otherPlayer)
     {
@@ -84,6 +95,15 @@ public class Game
         _view.SayThatATurnBegins(startingPlayer.Superstar.Name);
         _view.ShowGameInfo(startingPlayerInfo, otherPlayerInfo);
     }
+
+    // private void StartGame(Deck firstDeck, Deck secondDeck)
+    // {
+    //     var startingPlayer = DetermineStartingPlayer(firstDeck, secondDeck);
+
+    //     _view.AskUserWhatToDoWhenHeCannotUseHisAbility();
+
+    //     // DetermineAndAnnounceWinner(firstDeck, secondDeck);
+    // }
 
     // private PlayerInfo DetermineStartingPlayer(Deck firstDeck, Deck secondDeck)
     // {
