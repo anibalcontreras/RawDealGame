@@ -17,7 +17,4 @@ public class PlayerInfo
 
     public override string ToString()
         => $"{_superstarName}: {_fortitudeRating}F, tiene {_numberOfCardsInHand} cartas en la mano y {_numberOfCardsInArsenal} en el arsenal.";
-
-    // Eliminar el método Name de la clase PlayerInfo cuando limpie el código
-    // public string Name => _superstarName;
 }
