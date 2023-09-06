@@ -53,7 +53,7 @@ public class Game
     {
         var startingPlayer = DetermineStartingPlayer(firstDeck, secondDeck);
 
-        _view.AskUserWhatToDoWhenItIsNotPossibleToUseItsAbility();
+        _view.AskUserWhatToDoWhenHeCannotUseHisAbility();
 
         DetermineAndAnnounceWinner(firstDeck, secondDeck);
     }
