@@ -28,11 +28,8 @@ public class Game
         Player firstPlayer = initResult.FirstPlayer;
         Player secondPlayer = initResult.SecondPlayer;
 
-        while (true)
-        {
-            _playerTurn.PlayTurn(firstPlayer, secondPlayer);
-            _playerTurn.PlayTurn(secondPlayer, firstPlayer);
-        }
+        _playerTurn.PlayTurn(firstPlayer, secondPlayer);
+        
 
     }
 }
