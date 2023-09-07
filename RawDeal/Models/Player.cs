@@ -1,5 +1,6 @@
-using  RawDeal.Models;
+using RawDeal.Models;
 using RawDealView;
+using RawDealView.Formatters;
 
 public class Player
 {
@@ -16,6 +17,11 @@ public class Player
         Hand = new List<Card>();
         Arsenal = new List<Card>(deck.Cards);
         Ringside = new List<Card>();
+    }
+
+    public List<string> GetFormattedCardsInfo(List<Card> cards)
+    {
+        return cards.Select(Formatter.CardToString).ToList();
     }
 
     public PlayerInfo ToPlayerInfo()

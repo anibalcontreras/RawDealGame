@@ -1,6 +1,8 @@
+using RawDealView.Formatters;
+
 namespace RawDeal.Models
 {
-    public class Card
+    public class Card : IViewableCardInfo
     {
         public string Title { get; set; } = string.Empty;
         public List<string> Types { get; set; } = new List<string>();
