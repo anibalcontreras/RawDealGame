@@ -28,7 +28,10 @@ public class Game
         Player firstPlayer = initResult.FirstPlayer;
         Player secondPlayer = initResult.SecondPlayer;
 
+        // Turno firstPlayer
         _playerTurn.PlayTurn(firstPlayer, secondPlayer);
+        // Turno secondPlayer
+        _playerTurn.PlayTurn(secondPlayer, firstPlayer);
         
 
     }
