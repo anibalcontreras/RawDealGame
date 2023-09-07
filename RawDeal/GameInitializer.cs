@@ -2,6 +2,16 @@ namespace RawDeal;
 using RawDealView;
 using RawDeal.Logic;
 using RawDeal.Models;
+
+public class GameInitializationResult
+{
+    public Player FirstPlayer { get; set; } = null!;
+    public Player SecondPlayer { get; set; } = null!;
+
+    public bool IsSuccess { get; set; }
+
+}
+
 public class GameInitializer
 {
     private readonly View _view;
@@ -13,24 +23,32 @@ public class GameInitializer
         _deckFolder = deckFolder;
     }
 
-    public void InitializeGame()
+    public GameInitializationResult InitializeGame()
     {
+
+        var result = new GameInitializationResult();
+
         DeckLoader.InitializeDeckLoader();
         
         var firstDeck = InitializeFirstDeck();
         if (firstDeck == null)
-            return;
+            return result;
         var secondDeck = InitializeSecondDeck();
         if (secondDeck == null)
-            return;
+            return result;
         var firstPlayer = new Player(firstDeck);
         var secondPlayer = new Player(secondDeck);
 
         InitializePlayerHands(firstPlayer, secondPlayer);
 
         var startingPlayer = DetermineStartingPlayer(firstPlayer, secondPlayer);
+        var otherPlayer = (startingPlayer == firstPlayer) ? secondPlayer : firstPlayer;
 
-        InitializeGameWithStartingPlayer(startingPlayer, startingPlayer == firstPlayer ? secondPlayer : firstPlayer);
+        result.FirstPlayer = startingPlayer;
+        result.SecondPlayer = otherPlayer;
+        result.IsSuccess = true;
+
+        return result;
     }
 
     private Deck GetAndValidateDeck()
@@ -74,17 +92,5 @@ public class GameInitializer
         for (int i = 0; i < firstPlayer.Superstar.HandSize; i++) firstPlayer.DrawCard();
         
         for (int i = 0; i < secondPlayer.Superstar.HandSize; i++) secondPlayer.DrawCard();
-    }
-
-
-    private void InitializeGameWithStartingPlayer(Player startingPlayer, Player otherPlayer)
-    {
-        startingPlayer.DrawCard();
-
-        var startingPlayerInfo = startingPlayer.ToPlayerInfo();
-        var otherPlayerInfo = otherPlayer.ToPlayerInfo();
-
-        _view.SayThatATurnBegins(startingPlayer.Superstar.Name);
-        _view.ShowGameInfo(startingPlayerInfo, otherPlayerInfo);
     }
 }
