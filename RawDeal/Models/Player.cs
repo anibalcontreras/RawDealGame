@@ -11,6 +11,14 @@ public class Player
 
     public List<Card> RingArea { get; private set; } = new List<Card>();
 
+    public List<string> FormattedHand
+    {
+        get
+        {
+            return GetFormattedCardsInfo(Hand);
+        }
+    }
+
     public Player(Deck deck)
     {
         Superstar = deck.Superstar;
