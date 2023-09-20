@@ -28,7 +28,7 @@ public class GameInitializer
 
         var result = new GameInitializationResult();
 
-        DeckLoader.InitializeDeckLoader();
+        DeckLoader.InitializeDeckLoader(_view);
         
         var firstDeck = InitializeFirstDeck();
         if (firstDeck == null)

@@ -1,16 +1,18 @@
+using System.ComponentModel;
 using RawDeal.Models;
+using RawDealView;
 
 namespace RawDeal.Logic;
 public static class DeckLoader
 {
-    private static readonly Dictionary<string, Card> allAvailableCards = new Dictionary<string, Card>();
-    private static readonly Dictionary<string, Superstar> allAvailableSuperstars = new Dictionary<string, Superstar>();
     private const string SuperstarCardSuffix = " (Superstar Card)";
+    public static View CurrentView { get; set; }
 
-    public static void InitializeDeckLoader()
+    public static void InitializeDeckLoader(View view)
     {
-        LoadAllCards();
-        LoadAllSuperstars();
+        CurrentView = view;
+        CardRepository.LoadAllCards();
+        SuperstarRepository.LoadAllSuperstars(CurrentView);
     }
 
     public static Deck LoadDeck(string path)
@@ -20,24 +22,6 @@ public static class DeckLoader
         ValidateLines(lines, path);
 
         return CreateDeckFromLines(lines);
-    }
-
-    private static void LoadAllCards()
-    {
-        var cards = CardLoader.LoadCardsFromJson();
-        foreach (var card in cards)
-        {
-            allAvailableCards[card.Title] = card;
-        }
-    }
-
-    private static void LoadAllSuperstars()
-    {
-        var superstars = SuperstarLoader.LoadSuperstarsFromJson();
-        foreach (var superstar in superstars)
-        {
-            allAvailableSuperstars[superstar.Name] = superstar;
-        }
     }
 
     private static void ValidateFile(string path)
@@ -58,33 +42,35 @@ public static class DeckLoader
 
     private static Deck CreateDeckFromLines(string[] lines)
     {
-        var deck = new Deck
-        {
-            Superstar = GetSuperstarByName(lines[0].Replace(SuperstarCardSuffix, "")),
-            Cards = new List<Card>()
-        };
+        var deck = new Deck();
 
+        AddSuperstarToDeck(deck, lines[0].Replace(SuperstarCardSuffix, ""));
         AddCardsToDeck(deck, lines[1..]);
 
         return deck;
     }
 
-    private static Superstar GetSuperstarByName(string name)
+    private static void AddSuperstarToDeck(Deck deck, string superstarLogo)
     {
-        if (allAvailableSuperstars.TryGetValue(name, out var superstar))
+        var superstar = SuperstarRepository.GetSuperstarByLogo(superstarLogo);
+        if (superstar != null)
         {
-            return superstar;
+            deck.AddSuperstar(superstar);
         }
-        throw new Exception($"Superstar {name} no encontrado.");
+        else
+        {
+            Console.WriteLine($"Advertencia: El Superstar con el logo '{superstarLogo}' no se encontró.");
+        }
     }
 
     private static void AddCardsToDeck(Deck deck, string[] cardLines)
     {
         foreach (var cardTitle in cardLines)
         {
-            if (allAvailableCards.TryGetValue(cardTitle, out var card))
+            var card = CardRepository.GetCardByTitle(cardTitle);
+            if (card != null)
             {
-                deck.Cards.Add(card);
+                deck.AddCard(card);
             }
             else
             {
@@ -92,4 +78,6 @@ public static class DeckLoader
             }
         }
     }
+
+
 }

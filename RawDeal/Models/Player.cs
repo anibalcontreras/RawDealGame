@@ -4,7 +4,7 @@ using RawDealView.Formatters;
 
 public class Player
 {
-    public Superstar Superstar { get; set; } = new Superstar();
+    public Superstar Superstar { get; set; }
     public List<Card> Hand { get; private set; } = new List<Card>();
     public List<Card> Arsenal { get; private set; } = new List<Card>();
     public List<Card> Ringside { get; private set; } = new List<Card>();

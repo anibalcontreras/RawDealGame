@@ -1,19 +1,24 @@
-namespace RawDeal.Models
+namespace RawDeal.Models;
+public class Deck
 {
-    public class Deck
-    {
-        public Deck()
-        {
-            Superstar = new Superstar();
-            Cards = new List<Card>();
-        }
-        public Superstar Superstar { get; set; }
-        public List<Card> Cards { get; set; }
+    public Superstar Superstar { get; private set; }
+    public List<Card> Cards { get; private set; }
 
-        public override string ToString()
-        {
-            return $"Superstar: {Superstar.Name}\n" +
-                    $"Cards: {Cards}\n";
-        }
-    }    
+    public Deck()
+    {
+        Cards = new List<Card>();
+    }
+
+    public void AddSuperstar(Superstar superstar)
+    {
+        if (Superstar != null)
+            throw new InvalidOperationException("El deck ya tiene un Superstar asignado.");
+
+        Superstar = superstar ?? throw new ArgumentNullException(nameof(superstar));
+    }
+
+    public void AddCard(Card card)
+    {
+        Cards.Add(card ?? throw new ArgumentNullException(nameof(card)));
+    }
 }
