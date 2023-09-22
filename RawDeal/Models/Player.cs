@@ -51,6 +51,11 @@ public class Player
         List<Play> playablePlays = GetPlayablePlays(cards, playerFortitude);
         return playablePlays.Select(Formatter.PlayToString).ToList();
     }
+    
+    public List<Card> GetPlayableCards(List<Card> cards, int playerFortitude)
+    {
+        return GetPlayablePlays(cards, playerFortitude).Select(play => play.CardInfo as Card).ToList();
+    }
 
     public PlayerInfo ToPlayerInfo()
     {
@@ -74,7 +79,6 @@ public class Player
         {
             if (Arsenal.Count > 0)
             {
-                // Mover la carta del tope del arsenal a la pila de descarte
                 Card topCard = Arsenal[Arsenal.Count - 1];
                 Arsenal.RemoveAt(Arsenal.Count - 1);
                 Ringside.Add(topCard);
@@ -82,11 +86,6 @@ public class Player
                 _view.ShowCardOverturnByTakingDamage(topCard.ToString(), i + 1, damageAmount);
             }
         }
-    }
-
-    public List<Card> GetPlayableCards(List<Card> cards, int playerFortitude)
-    {
-        return GetPlayablePlays(cards, playerFortitude).Select(play => play.CardInfo as Card).ToList();
     }
 
     public void ApplyDamage(Card card)

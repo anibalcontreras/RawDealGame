@@ -37,10 +37,13 @@ public class PlayerTurn
                 HandleShowCardsActions(firstPlayer, secondPlayer);
                 break;
             case NextPlay.PlayCard:
-                List<string> formattedPlayableCards = firstPlayer.GetFormattedPlayableCards(firstPlayer.Hand, firstPlayer.Fortitude);
+                List<Card> playableCards = firstPlayer.GetPlayableCards(firstPlayer.Hand, firstPlayer.Fortitude);
+                List<string> formattedPlayableCards = firstPlayer.GetFormattedPlayableCards(playableCards, firstPlayer.Fortitude);
                 int indexPlay = _view.AskUserToSelectAPlay(formattedPlayableCards);
+
                 if (indexPlay < 0 || indexPlay >= formattedPlayableCards.Count)
                     break;
+
                 string selectedPlay = formattedPlayableCards[indexPlay];
                 _view.SayThatPlayerIsTryingToPlayThisCard(firstPlayer.Superstar.Name, selectedPlay);
                 _view.SayThatPlayerSuccessfullyPlayedACard();
@@ -48,13 +51,8 @@ public class PlayerTurn
                 int cardDamage = firstPlayer.GetPlayablePlays(firstPlayer.Hand, firstPlayer.Fortitude)[indexPlay].GetCardDamageAsInt();
                 _view.SayThatSuperstarWillTakeSomeDamage(secondPlayer.Superstar.Name, cardDamage);
                 
-                List<Card> playableCards = firstPlayer.GetPlayableCards(firstPlayer.Hand, firstPlayer.Fortitude);
-
                 Card playedCard = playableCards[indexPlay];
 
-
-                Console.WriteLine(playedCard.Title);
-                Console.WriteLine(playedCard.Damage);
                 firstPlayer.ApplyDamage(playedCard);
 
                 secondPlayer.ReceiveDamage(cardDamage);

@@ -29,4 +29,15 @@ public class Card : IViewableCardInfo
         // Console.WriteLine($"Card Effect: {CardEffect}");
         // return "";
     }
+
+    // public Card(Card other)
+    // {
+    //     this.Title = other.Title;
+    //     this.Types = other.Types;
+    //     this.Subtypes = other.Subtypes;
+    //     this.Fortitude = other.Fortitude;
+    //     this.Damage = other.Damage;
+    //     this.StunValue = other.StunValue;
+    //     this.CardEffect = other.CardEffect;
+    // }
 }
