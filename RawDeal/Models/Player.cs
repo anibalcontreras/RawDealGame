@@ -11,12 +11,23 @@ public class Player
 
     public List<Card> RingArea { get; private set; } = new List<Card>();
 
-    public Player(Deck deck)
+    private int _fortitude;
+
+    public int Fortitude
+    {
+        get { return RingArea.Sum(card => int.Parse(card.Damage)); }
+        private set { _fortitude = value; }
+    }
+
+    private readonly View _view;
+
+    public Player(Deck deck, View view)
     {
         Superstar = deck.Superstar;
         Hand = new List<Card>();
         Arsenal = new List<Card>(deck.Cards);
         Ringside = new List<Card>();
+        _view = view;
     }
 
     public List<string> GetFormattedCardsInfo(List<Card> cards)
@@ -24,10 +35,27 @@ public class Player
         return cards.Select(Formatter.CardToString).ToList();
     }
 
+    public List<Play> GetPlayablePlays(List<Card> cards, int playerFortitude)
+    {
+        List<Play> plays = ConvertCardsToPlays(cards);
+        return plays.Where(play => play.IsPlayable(playerFortitude)).ToList();
+    }
+
+    private List<Play> ConvertCardsToPlays(List<Card> cards)
+    {
+        return cards.Select(card => new Play(card, card.GetTypesAsString())).ToList();
+    }
+
+    public List<string> GetFormattedPlayableCards(List<Card> cards, int playerFortitude)
+    {
+        List<Play> playablePlays = GetPlayablePlays(cards, playerFortitude);
+        return playablePlays.Select(Formatter.PlayToString).ToList();
+    }
+
     public PlayerInfo ToPlayerInfo()
     {
-        return new PlayerInfo(Superstar.Name, 0, Hand.Count, Arsenal.Count);
-        // return new PlayerInfo(Superstar.Name, fortitudeRating, Hand.Count, Arsenal.Count)
+
+        return new PlayerInfo(Superstar.Name, Fortitude, Hand.Count, Arsenal.Count);
     }
 
     public void DrawCard()
@@ -40,16 +68,30 @@ public class Player
         }
     }
 
-    public void DiscardCard(Card card)
+    public void ReceiveDamage(int damageAmount)
     {
-        Hand.Remove(card);
-        Ringside.Add(card);
+        for (int i = 0; i < damageAmount; i++)
+        {
+            if (Arsenal.Count > 0)
+            {
+                // Mover la carta del tope del arsenal a la pila de descarte
+                Card topCard = Arsenal[Arsenal.Count - 1];
+                Arsenal.RemoveAt(Arsenal.Count - 1);
+                Ringside.Add(topCard);
+
+                _view.ShowCardOverturnByTakingDamage(topCard.ToString(), i + 1, damageAmount);
+            }
+        }
+    }
+
+    public List<Card> GetPlayableCards(List<Card> cards, int playerFortitude)
+    {
+        return GetPlayablePlays(cards, playerFortitude).Select(play => play.CardInfo as Card).ToList();
     }
 
     public void ApplyDamage(Card card)
     {
-        Arsenal.Remove(card);
-        Ringside.Add(card);
+        Hand.Remove(card);
+        RingArea.Add(card);
     }
-
 }
