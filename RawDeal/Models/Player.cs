@@ -50,7 +50,7 @@ public class Player
         }
     }
 
-    public void ReceiveDamage(int damageAmount)
+    public bool ReceiveDamage(int damageAmount)
     {
         for (int i = 0; i < damageAmount; i++)
         {
@@ -61,7 +61,12 @@ public class Player
                 Ringside.Add(lastCard);
                 _view.ShowCardOverturnByTakingDamage(lastCard.ToString(), i + 1, damageAmount);
             }
+            else
+            {
+                return true;
+            }
         }
+        return false;
     }
 
     public void ApplyDamage(int cardIndex)
@@ -69,5 +74,10 @@ public class Player
         Card cardToApply = Hand[cardIndex];
         Hand.RemoveAt(cardIndex);
         RingArea.Add(cardToApply);
+    }
+
+    public bool HasEmptyArsenal()
+    {
+        return Arsenal.Count == 0;
     }
 }

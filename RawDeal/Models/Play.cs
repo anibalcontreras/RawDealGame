@@ -46,10 +46,8 @@ public class Play : IViewablePlayInfo
         return cards.Select(card => new Play(card, card.GetTypesAsString())).ToList();
     }
 
-
     public static List<Card> GetPlayableCards(List<Card> cards, int playerFortitude)
     {
         return cards.Where(card => new Play(card, card.GetTypesAsString()).IsPlayable(playerFortitude)).ToList();
     }
-
 }

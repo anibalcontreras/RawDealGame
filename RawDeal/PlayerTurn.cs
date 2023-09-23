@@ -35,12 +35,12 @@ public class PlayerTurn
                 break;
             case NextPlay.PlayCard:
 
-        
                 List<Card> playableCards = Play.GetPlayableCards(firstPlayer.Hand, firstPlayer.Fortitude);
                 List<string> formattedPlayableCards = Play.GetFormattedPlayableCards(playableCards, firstPlayer.Fortitude);
+
                 int indexPlay = _view.AskUserToSelectAPlay(formattedPlayableCards);
 
-                if (indexPlay < 0 || indexPlay >= formattedPlayableCards.Count)
+                if (indexPlay == -1)
                     break;
 
                 string selectedPlay = formattedPlayableCards[indexPlay];
@@ -54,10 +54,22 @@ public class PlayerTurn
                 Card playedCard = playableCards[indexPlay];
                 int indexOfCardInHand = firstPlayer.Hand.FindIndex(card => ReferenceEquals(card, playedCard));
 
-                secondPlayer.ReceiveDamage(cardDamage);
+                bool hasLost = secondPlayer.ReceiveDamage(cardDamage);
+                if (hasLost)
+                {
+                    turnOn = false;
+                    gameOn = false;
+                    _view.CongratulateWinner(firstPlayer.Superstar.Name);
+                    return;
+                }
                 firstPlayer.ApplyDamage(indexOfCardInHand);
                 break;
             case NextPlay.EndTurn:
+                if (secondPlayer.HasEmptyArsenal())
+                {
+                    gameOn = false;
+                    _view.CongratulateWinner(firstPlayer.Superstar.Name);
+                }
                 turnOn = false;
                 break;
             case NextPlay.GiveUp:
@@ -99,6 +111,4 @@ public class PlayerTurn
                 break;
         }
     }
-
-
 }
