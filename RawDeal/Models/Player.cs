@@ -4,29 +4,34 @@ using RawDealView.Formatters;
 
 public class Player
 {
-    public Superstar Superstar { get; set; } = new Superstar();
-    public List<Card> Hand { get; private set; } = new List<Card>();
-    public List<Card> Arsenal { get; private set; } = new List<Card>();
-    public List<Card> Ringside { get; private set; } = new List<Card>();
+    public Superstar Superstar { get; private set; } = new Superstar();
+    private List<Card> Hand { get; } = new List<Card>();
+    private List<Card> Arsenal { get; } = new List<Card>();
+    private List<Card> Ringside { get; } = new List<Card>();
+    private List<Card> RingArea { get; } = new List<Card>();
+    private readonly View _view;
 
-    public List<Card> RingArea { get; private set; } = new List<Card>();
+    public int Fortitude => RingArea.Sum(card => int.Parse(card.Damage));
 
-    private int _fortitude;
-
-    public int Fortitude
+    public List<Card> GetHand()
     {
-        get { return RingArea.Sum(card => int.Parse(card.Damage)); }
-        private set { _fortitude = value; }
+        return Hand;
     }
 
-    private readonly View _view;
+    public List<Card> GetRingArea()
+    {
+        return RingArea;
+    }
+
+    public List<Card> GetRingside()
+    {
+        return Ringside;
+    }
 
     public Player(Deck deck, View view)
     {
         Superstar = deck.Superstar;
-        Hand = new List<Card>();
-        Arsenal = new List<Card>(deck.Cards);
-        Ringside = new List<Card>();
+        Arsenal.AddRange(deck.Cards);
         _view = view;
     }
 
@@ -42,10 +47,10 @@ public class Player
 
     public void DrawCard()
     {
-        if (Arsenal.Count > 0)
+        if (Arsenal.Any())
         {
-            Card lastCard = Arsenal[Arsenal.Count - 1];
-            Arsenal.RemoveAt(Arsenal.Count - 1);
+            Card lastCard = Arsenal.Last();
+            Arsenal.Remove(lastCard);
             Hand.Add(lastCard);
         }
     }
@@ -54,10 +59,10 @@ public class Player
     {
         for (int i = 0; i < damageAmount; i++)
         {
-            if (Arsenal.Count > 0)
+            if (Arsenal.Any())
             {
-                Card lastCard = Arsenal[Arsenal.Count - 1];
-                Arsenal.RemoveAt(Arsenal.Count - 1);
+                Card lastCard = Arsenal.Last();
+                Arsenal.Remove(lastCard);
                 Ringside.Add(lastCard);
                 _view.ShowCardOverturnByTakingDamage(lastCard.ToString(), i + 1, damageAmount);
             }
@@ -78,6 +83,6 @@ public class Player
 
     public bool HasEmptyArsenal()
     {
-        return Arsenal.Count == 0;
+        return !Arsenal.Any();
     }
 }

@@ -8,22 +8,41 @@ public class PlayerTurn
 {
     private readonly View _view;
 
+    private Player CurrentPlayer { get; set; }
+    private Player Opponent { get; set; }
+    private List<Card> PlayableCards { get; set; }
+    private int SelectedPlayIndex { get; set; }
+    public bool GameOn { get; set; } = true;
+    public bool TurnOn { get; set; } = true;
+    
     public PlayerTurn(View view)
     {
         _view = view;
     }
 
-    public bool PlayTurn(Player firstPlayer, Player secondPlayer, ref bool gameOn)
+    public bool PlayTurn(Player firstPlayer, Player secondPlayer)
     {
-        firstPlayer.DrawCard();
-        _view.SayThatATurnBegins(firstPlayer.Superstar.Name);
-        bool turnOn = true;
-        while (turnOn)
-            HandleTurnActions(firstPlayer, secondPlayer, ref turnOn, ref gameOn);
-            return gameOn;
+        StartPlayerTurn(firstPlayer);
+        ExecutePlayerActions(firstPlayer, secondPlayer);
+        return GameOn;
     }
 
-    private void HandleTurnActions(Player firstPlayer, Player secondPlayer, ref bool turnOn, ref bool gameOn)
+    private void StartPlayerTurn(Player player)
+    {
+        player.DrawCard();
+        _view.SayThatATurnBegins(player.Superstar.Name);
+    }
+
+    private void ExecutePlayerActions(Player firstPlayer, Player secondPlayer)
+    {
+        bool continueTurn = true;
+        while (continueTurn)
+        {
+            continueTurn = HandleTurnActions(firstPlayer, secondPlayer);
+        }
+    }
+
+    private bool HandleTurnActions(Player firstPlayer, Player secondPlayer)
     {
         _view.ShowGameInfo(firstPlayer.ToPlayerInfo(), secondPlayer.ToPlayerInfo());
         NextPlay turnActionsSelections = _view.AskUserWhatToDoWhenHeCannotUseHisAbility();
@@ -34,51 +53,104 @@ public class PlayerTurn
                 HandleShowCardsActions(firstPlayer, secondPlayer);
                 break;
             case NextPlay.PlayCard:
-
-                List<Card> playableCards = Play.GetPlayableCards(firstPlayer.Hand, firstPlayer.Fortitude);
-                List<string> formattedPlayableCards = Play.GetFormattedPlayableCards(playableCards, firstPlayer.Fortitude);
-
-                int indexPlay = _view.AskUserToSelectAPlay(formattedPlayableCards);
-
-                if (indexPlay == -1)
-                    break;
-
-                string selectedPlay = formattedPlayableCards[indexPlay];
-                _view.SayThatPlayerIsTryingToPlayThisCard(firstPlayer.Superstar.Name, selectedPlay);
-                _view.SayThatPlayerSuccessfullyPlayedACard();
-
-                List<Play> playablePlays = Play.GetPlayablePlays(firstPlayer.Hand, firstPlayer.Fortitude);
-                int cardDamage = playablePlays[indexPlay].GetCardDamageAsInt();
-                _view.SayThatSuperstarWillTakeSomeDamage(secondPlayer.Superstar.Name, cardDamage);
-
-                Card playedCard = playableCards[indexPlay];
-                int indexOfCardInHand = firstPlayer.Hand.FindIndex(card => ReferenceEquals(card, playedCard));
-
-                bool hasLost = secondPlayer.ReceiveDamage(cardDamage);
-                if (hasLost)
-                {
-                    turnOn = false;
-                    gameOn = false;
-                    _view.CongratulateWinner(firstPlayer.Superstar.Name);
-                    return;
-                }
-                firstPlayer.ApplyDamage(indexOfCardInHand);
+                HandlePlayCardAction(firstPlayer, secondPlayer);
+                if (!GameOn) return false;
                 break;
             case NextPlay.EndTurn:
-                if (secondPlayer.HasEmptyArsenal())
-                {
-                    gameOn = false;
-                    _view.CongratulateWinner(firstPlayer.Superstar.Name);
-                }
-                turnOn = false;
-                break;
+                HandleEndTurnAction(firstPlayer, secondPlayer);
+                return false;
             case NextPlay.GiveUp:
-                turnOn = false;
-                gameOn = false;
-                _view.CongratulateWinner(firstPlayer.Superstar.Name);
-                break;
+                HandleGiveUpAction(secondPlayer);
+                return false;
         }
+        return true;
     }
+    private void HandlePlayCardAction(Player firstPlayer, Player secondPlayer)
+    {
+        CurrentPlayer = firstPlayer;
+        Opponent = secondPlayer;
+
+        PlayableCards = Play.GetPlayableCards(CurrentPlayer.GetHand(), CurrentPlayer.Fortitude);
+        List<string> formattedPlayableCards = Play.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude);
+
+        SelectedPlayIndex = _view.AskUserToSelectAPlay(formattedPlayableCards);
+
+        if (SelectedPlayIndex == -1)
+            return;
+
+        ExecuteCardPlay();
+    }
+
+    private void ExecuteCardPlay()
+    {
+        AnnounceCardPlay();
+        int cardDamage = CalculateCardDamage();
+        AnnounceDamageToOpponent(cardDamage);
+
+        bool hasLost = ApplyCardDamageToOpponent(cardDamage);
+        if (hasLost)
+        {
+            EndGame(CurrentPlayer);
+            return;
+        }
+
+        ApplyCardEffect();
+    }
+
+    private void AnnounceCardPlay()
+    {
+        string selectedPlay = Play.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude)[SelectedPlayIndex];
+        _view.SayThatPlayerIsTryingToPlayThisCard(CurrentPlayer.Superstar.Name, selectedPlay);
+        _view.SayThatPlayerSuccessfullyPlayedACard();
+    }
+
+    private int CalculateCardDamage()
+    {
+        List<Play> playablePlays = Play.GetPlayablePlays(CurrentPlayer.GetHand(), CurrentPlayer.Fortitude);
+        return playablePlays[SelectedPlayIndex].GetCardDamageAsInt();
+    }
+
+    private void AnnounceDamageToOpponent(int cardDamage)
+    {
+        _view.SayThatSuperstarWillTakeSomeDamage(Opponent.Superstar.Name, cardDamage);
+    }
+
+    private bool ApplyCardDamageToOpponent(int cardDamage)
+    {
+        return Opponent.ReceiveDamage(cardDamage);
+    }
+
+    private void ApplyCardEffect()
+    {
+        Card playedCard = PlayableCards[SelectedPlayIndex];
+        int indexOfCardInHand = CurrentPlayer.GetHand().FindIndex(card => ReferenceEquals(card, playedCard));
+        CurrentPlayer.ApplyDamage(indexOfCardInHand);
+    }
+
+    private void HandleEndTurnAction(Player firstPlayer, Player secondPlayer)
+    {
+        CurrentPlayer = firstPlayer;
+        Opponent = secondPlayer;
+
+        if (Opponent.HasEmptyArsenal())
+        {
+            EndGame(CurrentPlayer);
+        }
+        TurnOn = false;
+    }
+
+    private void HandleGiveUpAction(Player opponentPlayer)
+    {
+        EndGame(opponentPlayer);
+    }
+
+    private void EndGame(Player winningPlayer)
+    {
+        TurnOn = false;
+        GameOn = false;
+        _view.CongratulateWinner(winningPlayer.Superstar.Name);
+    }
+
     private void HandleShowCardsActions(Player firstPlayer, Player secondPlayer)
     {
         CardSet showCardsActionsSelection = _view.AskUserWhatSetOfCardsHeWantsToSee();
@@ -86,29 +158,29 @@ public class PlayerTurn
         switch(showCardsActionsSelection)
         {
             case CardSet.Hand:
-                List<string> formattedHandCards = firstPlayer.GetFormattedCardsInfo(firstPlayer.Hand);
-                _view.ShowCards(formattedHandCards);
+                DisplayFormattedCards(firstPlayer, firstPlayer.GetHand());
                 break;
 
             case CardSet.RingArea:
-                List<string> formattedRingAreaCards = firstPlayer.GetFormattedCardsInfo(firstPlayer.RingArea);
-                _view.ShowCards(formattedRingAreaCards);
+                DisplayFormattedCards(firstPlayer, firstPlayer.GetRingArea());
                 break;
 
             case CardSet.RingsidePile:
-                List<string> formattedRingsideCards = firstPlayer.GetFormattedCardsInfo(firstPlayer.Ringside);
-                _view.ShowCards(formattedRingsideCards);
+                DisplayFormattedCards(firstPlayer, firstPlayer.GetRingside());
                 break;
 
             case CardSet.OpponentsRingArea:
-                List<string> formattedOpponentsRingAreaCards = secondPlayer.GetFormattedCardsInfo(secondPlayer.RingArea);
-                _view.ShowCards(formattedOpponentsRingAreaCards);
+                DisplayFormattedCards(secondPlayer, secondPlayer.GetRingArea());
                 break;
 
             case CardSet.OpponentsRingsidePile:
-                List<string> formattedOpponentsRingsideCards = secondPlayer.GetFormattedCardsInfo(secondPlayer.Ringside);
-                _view.ShowCards(formattedOpponentsRingsideCards);
+                DisplayFormattedCards(secondPlayer, secondPlayer.GetRingside());
                 break;
         }
+    }
+    private void DisplayFormattedCards(Player player, List<Card> cardSet)
+    {
+        List<string> formattedCards = player.GetFormattedCardsInfo(cardSet);
+        _view.ShowCards(formattedCards);
     }
 }

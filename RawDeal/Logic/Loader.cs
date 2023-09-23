@@ -53,16 +53,4 @@ public static class CardLoader
     {
         return _jsonLoader.LoadFromJson();
     }
-
-    // public static Dictionary<string, Card> LoadCardsIntoDictionary()
-    // {
-    //     var cardsList = LoadCardsFromJson();
-    //     Dictionary<string, Card> cardsDict = new Dictionary<string, Card>();
-
-    //     foreach (var card in cardsList)
-    //     {
-    //         cardsDict[card.Title] = card;
-    //     }
-    //     return cardsDict;
-    // }
 }
