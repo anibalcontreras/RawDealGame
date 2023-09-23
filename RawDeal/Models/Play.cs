@@ -7,7 +7,7 @@ public class Play : IViewablePlayInfo
     private IViewableCardInfo _cardInfo;
     private string _playedAs;
 
-    public Play(IViewableCardInfo cardInfo, string playedAs)
+    private Play(IViewableCardInfo cardInfo, string playedAs)
     {
         _cardInfo = cardInfo;
         _playedAs = playedAs;
@@ -16,7 +16,12 @@ public class Play : IViewablePlayInfo
     public IViewableCardInfo CardInfo => _cardInfo;
     public string PlayedAs => _playedAs;
 
-    public bool IsPlayable(int playerFortitude)
+    public override string ToString()
+    {
+        return Formatter.PlayToString(this);
+    }
+
+    private bool IsPlayable(int playerFortitude)
     {
         int cardFortitude = int.Parse(_cardInfo.Fortitude);
 
@@ -34,6 +39,7 @@ public class Play : IViewablePlayInfo
         List<Play> playablePlays = GetPlayablePlays(cards, playerFortitude);
         return playablePlays.Select(Formatter.PlayToString).ToList();
     }
+
 
     public static List<Play> GetPlayablePlays(List<Card> cards, int playerFortitude)
     {
