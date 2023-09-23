@@ -2,6 +2,7 @@ namespace RawDeal;
 
 using RawDealView;
 using RawDealView.Options;
+using RawDeal.Models;
 
 public class PlayerTurn
 {
@@ -12,19 +13,17 @@ public class PlayerTurn
         _view = view;
     }
 
-    public void PlayTurn(Player firstPlayer, Player secondPlayer)
+    public bool PlayTurn(Player firstPlayer, Player secondPlayer, ref bool gameOn)
     {
-
         firstPlayer.DrawCard();
-
         _view.SayThatATurnBegins(firstPlayer.Superstar.Name);
-
         bool turnOn = true;
         while (turnOn)
-            HandleTurnActions(firstPlayer, secondPlayer, ref turnOn);
+            HandleTurnActions(firstPlayer, secondPlayer, ref turnOn, ref gameOn);
+            return gameOn;
     }
 
-    private void HandleTurnActions(Player firstPlayer, Player secondPlayer, ref bool turnOn)
+    private void HandleTurnActions(Player firstPlayer, Player secondPlayer, ref bool turnOn, ref bool gameOn)
     {
         _view.ShowGameInfo(firstPlayer.ToPlayerInfo(), secondPlayer.ToPlayerInfo());
         NextPlay turnActionsSelections = _view.AskUserWhatToDoWhenHeCannotUseHisAbility();
@@ -34,20 +33,56 @@ public class PlayerTurn
             case NextPlay.ShowCards:
                 HandleShowCardsActions(firstPlayer, secondPlayer);
                 break;
+            case NextPlay.PlayCard:
+
+                List<Card> playableCards = Play.GetPlayableCards(firstPlayer.Hand, firstPlayer.Fortitude);
+                List<string> formattedPlayableCards = Play.GetFormattedPlayableCards(playableCards, firstPlayer.Fortitude);
+
+                int indexPlay = _view.AskUserToSelectAPlay(formattedPlayableCards);
+
+                if (indexPlay == -1)
+                    break;
+
+                string selectedPlay = formattedPlayableCards[indexPlay];
+                _view.SayThatPlayerIsTryingToPlayThisCard(firstPlayer.Superstar.Name, selectedPlay);
+                _view.SayThatPlayerSuccessfullyPlayedACard();
+
+                List<Play> playablePlays = Play.GetPlayablePlays(firstPlayer.Hand, firstPlayer.Fortitude);
+                int cardDamage = playablePlays[indexPlay].GetCardDamageAsInt();
+                _view.SayThatSuperstarWillTakeSomeDamage(secondPlayer.Superstar.Name, cardDamage);
+
+                Card playedCard = playableCards[indexPlay];
+                int indexOfCardInHand = firstPlayer.Hand.FindIndex(card => ReferenceEquals(card, playedCard));
+
+                bool hasLost = secondPlayer.ReceiveDamage(cardDamage);
+                if (hasLost)
+                {
+                    turnOn = false;
+                    gameOn = false;
+                    _view.CongratulateWinner(firstPlayer.Superstar.Name);
+                    return;
+                }
+                firstPlayer.ApplyDamage(indexOfCardInHand);
+                break;
             case NextPlay.EndTurn:
+                if (secondPlayer.HasEmptyArsenal())
+                {
+                    gameOn = false;
+                    _view.CongratulateWinner(firstPlayer.Superstar.Name);
+                }
                 turnOn = false;
                 break;
             case NextPlay.GiveUp:
                 turnOn = false;
+                gameOn = false;
+                _view.CongratulateWinner(firstPlayer.Superstar.Name);
                 break;
         }
     }
-
     private void HandleShowCardsActions(Player firstPlayer, Player secondPlayer)
     {
         CardSet showCardsActionsSelection = _view.AskUserWhatSetOfCardsHeWantsToSee();
         
-        // Ver como limpiar este codigo para no repetir tanto List<string>
         switch(showCardsActionsSelection)
         {
             case CardSet.Hand:

@@ -84,7 +84,7 @@ public static class DeckLoader
         {
             if (allAvailableCards.TryGetValue(cardTitle, out var card))
             {
-                deck.Cards.Add(card);
+                deck.Cards.Add(card.Clone());
             }
             else
             {

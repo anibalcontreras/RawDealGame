@@ -40,5 +40,4 @@ public static class Formatter
             return $" Effect: {cardInfo.CardEffect}";
         return "";
     }
-    
 }

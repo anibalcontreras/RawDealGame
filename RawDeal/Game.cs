@@ -1,3 +1,4 @@
+using System.Reflection;
 using RawDealView;
 
 namespace RawDeal;
@@ -28,11 +29,15 @@ public class Game
         Player firstPlayer = initResult.FirstPlayer;
         Player secondPlayer = initResult.SecondPlayer;
 
-        // Turno firstPlayer
-        _playerTurn.PlayTurn(firstPlayer, secondPlayer);
-        // Turno secondPlayer
-        _playerTurn.PlayTurn(secondPlayer, firstPlayer);
-        
-
+        bool gameOn = true;
+        while (gameOn)
+        {
+            // HandleGameActions(firstPlayer, secondPlayer, ref gameOn);
+            _playerTurn.PlayTurn(firstPlayer, secondPlayer, ref gameOn);
+            if (!gameOn)
+                break;
+            _playerTurn.PlayTurn(secondPlayer, firstPlayer, ref gameOn);
+        }
     }
+
 }
