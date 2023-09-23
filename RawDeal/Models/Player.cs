@@ -11,20 +11,23 @@ public class Player
 
     public List<Card> RingArea { get; private set; } = new List<Card>();
 
-    public List<string> FormattedHand
+    private int _fortitude;
+
+    public int Fortitude
     {
-        get
-        {
-            return GetFormattedCardsInfo(Hand);
-        }
+        get { return RingArea.Sum(card => int.Parse(card.Damage)); }
+        private set { _fortitude = value; }
     }
 
-    public Player(Deck deck)
+    private readonly View _view;
+
+    public Player(Deck deck, View view)
     {
         Superstar = deck.Superstar;
         Hand = new List<Card>();
         Arsenal = new List<Card>(deck.Cards);
         Ringside = new List<Card>();
+        _view = view;
     }
 
     public List<string> GetFormattedCardsInfo(List<Card> cards)
@@ -34,30 +37,37 @@ public class Player
 
     public PlayerInfo ToPlayerInfo()
     {
-        return new PlayerInfo(Superstar.Name, 0, Hand.Count, Arsenal.Count);
-        // return new PlayerInfo(Superstar.Name, fortitudeRating, Hand.Count, Arsenal.Count)
+        return new PlayerInfo(Superstar.Name, Fortitude, Hand.Count, Arsenal.Count);
     }
 
     public void DrawCard()
     {
         if (Arsenal.Count > 0)
         {
-            Card topCard = Arsenal[Arsenal.Count - 1];
+            Card lastCard = Arsenal[Arsenal.Count - 1];
             Arsenal.RemoveAt(Arsenal.Count - 1);
-            Hand.Add(topCard);
+            Hand.Add(lastCard);
         }
     }
 
-    public void DiscardCard(Card card)
+    public void ReceiveDamage(int damageAmount)
     {
-        Hand.Remove(card);
-        Ringside.Add(card);
+        for (int i = 0; i < damageAmount; i++)
+        {
+            if (Arsenal.Count > 0)
+            {
+                Card lastCard = Arsenal[Arsenal.Count - 1];
+                Arsenal.RemoveAt(Arsenal.Count - 1);
+                Ringside.Add(lastCard);
+                _view.ShowCardOverturnByTakingDamage(lastCard.ToString(), i + 1, damageAmount);
+            }
+        }
     }
 
-    public void ApplyDamage(Card card)
+    public void ApplyDamage(int cardIndex)
     {
-        Arsenal.Remove(card);
-        Ringside.Add(card);
+        Card cardToApply = Hand[cardIndex];
+        Hand.RemoveAt(cardIndex);
+        RingArea.Add(cardToApply);
     }
-
 }
