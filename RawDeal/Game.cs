@@ -1,12 +1,10 @@
 using RawDealView;
 
 namespace RawDeal;
-
 public class Game
 {
     private readonly View _view;
     private readonly string _deckFolder;
-
     private readonly GameInitializer _gameInitializer;
     private readonly PlayerTurn _playerTurn;
 
@@ -17,21 +15,18 @@ public class Game
         _gameInitializer = new GameInitializer(view, deckFolder);
         _playerTurn = new PlayerTurn(view);
     }
-
+    private GameInitializationResult InitializeGame()
+    {
+        return _gameInitializer.InitializeGame();
+    }
     public void Play()
     {
-        var initResult = InitializeGame();
+        GameInitializationResult initResult = InitializeGame();
         if (!initResult.IsSuccess)
             return;
 
         PlayGame(initResult.FirstPlayer, initResult.SecondPlayer);
     }
-
-    private GameInitializationResult InitializeGame()
-    {
-        return _gameInitializer.InitializeGame();
-    }
-
     private void PlayGame(Player firstPlayer, Player secondPlayer)
     {
         while (true)
@@ -43,7 +38,6 @@ public class Game
                 break;
         }
     }
-
     private bool PlayTurnAndCheckGameStatus(Player currentPlayer, Player opponentPlayer)
     {
         return _playerTurn.PlayTurn(currentPlayer, opponentPlayer);

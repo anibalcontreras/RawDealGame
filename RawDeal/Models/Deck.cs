@@ -9,6 +9,5 @@ public class Deck
     }
     public Superstar Superstar { get; set; }
     public List<Card> Cards { get; set; }
-
 }    
 
