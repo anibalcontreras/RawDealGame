@@ -14,7 +14,7 @@ public class PlayerTurn
     private int SelectedPlayIndex { get; set; }
     public bool GameOn { get; set; } = true;
     public bool TurnOn { get; set; } = true;
-
+    
     public PlayerTurn(View view)
     {
         _view = view;
@@ -70,7 +70,7 @@ public class PlayerTurn
         CurrentPlayer = firstPlayer;
         Opponent = secondPlayer;
 
-        PlayableCards = Play.GetPlayableCards(CurrentPlayer.Hand, CurrentPlayer.Fortitude);
+        PlayableCards = Play.GetPlayableCards(CurrentPlayer.GetHand(), CurrentPlayer.Fortitude);
         List<string> formattedPlayableCards = Play.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude);
 
         SelectedPlayIndex = _view.AskUserToSelectAPlay(formattedPlayableCards);
@@ -106,7 +106,7 @@ public class PlayerTurn
 
     private int CalculateCardDamage()
     {
-        List<Play> playablePlays = Play.GetPlayablePlays(CurrentPlayer.Hand, CurrentPlayer.Fortitude);
+        List<Play> playablePlays = Play.GetPlayablePlays(CurrentPlayer.GetHand(), CurrentPlayer.Fortitude);
         return playablePlays[SelectedPlayIndex].GetCardDamageAsInt();
     }
 
@@ -123,7 +123,7 @@ public class PlayerTurn
     private void ApplyCardEffect()
     {
         Card playedCard = PlayableCards[SelectedPlayIndex];
-        int indexOfCardInHand = CurrentPlayer.Hand.FindIndex(card => ReferenceEquals(card, playedCard));
+        int indexOfCardInHand = CurrentPlayer.GetHand().FindIndex(card => ReferenceEquals(card, playedCard));
         CurrentPlayer.ApplyDamage(indexOfCardInHand);
     }
 
@@ -158,23 +158,23 @@ public class PlayerTurn
         switch(showCardsActionsSelection)
         {
             case CardSet.Hand:
-                DisplayFormattedCards(firstPlayer, firstPlayer.Hand);
+                DisplayFormattedCards(firstPlayer, firstPlayer.GetHand());
                 break;
 
             case CardSet.RingArea:
-                DisplayFormattedCards(firstPlayer, firstPlayer.RingArea);
+                DisplayFormattedCards(firstPlayer, firstPlayer.GetRingArea());
                 break;
 
             case CardSet.RingsidePile:
-                DisplayFormattedCards(firstPlayer, firstPlayer.Ringside);
+                DisplayFormattedCards(firstPlayer, firstPlayer.GetRingside());
                 break;
 
             case CardSet.OpponentsRingArea:
-                DisplayFormattedCards(secondPlayer, secondPlayer.RingArea);
+                DisplayFormattedCards(secondPlayer, secondPlayer.GetRingArea());
                 break;
 
             case CardSet.OpponentsRingsidePile:
-                DisplayFormattedCards(secondPlayer, secondPlayer.Ringside);
+                DisplayFormattedCards(secondPlayer, secondPlayer.GetRingside());
                 break;
         }
     }

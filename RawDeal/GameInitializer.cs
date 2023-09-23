@@ -7,9 +7,7 @@ public class GameInitializationResult
 {
     public Player FirstPlayer { get; set; } = null!;
     public Player SecondPlayer { get; set; } = null!;
-
     public bool IsSuccess { get; set; }
-
 }
 
 public class GameInitializer
@@ -25,24 +23,25 @@ public class GameInitializer
 
     public GameInitializationResult InitializeGame()
     {
-
-        var result = new GameInitializationResult();
+        GameInitializationResult result = new GameInitializationResult();
 
         DeckLoader.InitializeDeckLoader();
-        
-        var firstDeck = InitializeFirstDeck();
+
+        Deck firstDeck = InitializeFirstDeck();
         if (firstDeck == null)
             return result;
-        var secondDeck = InitializeSecondDeck();
+
+        Deck secondDeck = InitializeSecondDeck();
         if (secondDeck == null)
             return result;
-        var firstPlayer = new Player(firstDeck, _view);
-        var secondPlayer = new Player(secondDeck, _view);
+
+        Player firstPlayer = new Player(firstDeck, _view);
+        Player secondPlayer = new Player(secondDeck, _view);
 
         InitializePlayerHands(firstPlayer, secondPlayer);
 
-        var startingPlayer = DetermineStartingPlayer(firstPlayer, secondPlayer);
-        var otherPlayer = (startingPlayer == firstPlayer) ? secondPlayer : firstPlayer;
+        Player startingPlayer = DetermineStartingPlayer(firstPlayer, secondPlayer);
+        Player otherPlayer = (startingPlayer == firstPlayer) ? secondPlayer : firstPlayer;
 
         result.FirstPlayer = startingPlayer;
         result.SecondPlayer = otherPlayer;
@@ -51,19 +50,18 @@ public class GameInitializer
         return result;
     }
 
+
     private Deck GetAndValidateDeck()
     {
-        var allAvailableSuperstars = SuperstarLoader.LoadSuperstarsIntoDictionary();
+        Dictionary<string, Superstar> allAvailableSuperstars = SuperstarLoader.LoadSuperstarsIntoDictionary();
         string deckPath = _view.AskUserToSelectDeck(_deckFolder);
         Deck deck = DeckLoader.LoadDeck(deckPath);
-        var validationResult = DeckValidator.IsValidDeck(deck, allAvailableSuperstars);
-
-        return validationResult.IsValid ? deck : null;
+        return DeckValidator.IsValidDeck(deck, allAvailableSuperstars).IsValid ? deck : null;
     }
 
     private Deck? InitializeFirstDeck()
     {
-        var firstDeck = GetAndValidateDeck();
+        Deck? firstDeck = GetAndValidateDeck();
         if (firstDeck == null)
         {
             _view.SayThatDeckIsInvalid();
@@ -73,14 +71,13 @@ public class GameInitializer
 
     private Deck? InitializeSecondDeck()
     {
-        var secondDeck = GetAndValidateDeck();
+        Deck? secondDeck = GetAndValidateDeck();
         if (secondDeck == null)
         {
             _view.SayThatDeckIsInvalid();
         }
         return secondDeck;
     }
-
 
     private Player DetermineStartingPlayer(Player firstPlayer, Player secondPlayer)
     {
