@@ -36,8 +36,8 @@ public class GameInitializer
         var secondDeck = InitializeSecondDeck();
         if (secondDeck == null)
             return result;
-        var firstPlayer = new Player(firstDeck, _view);
-        var secondPlayer = new Player(secondDeck, _view);
+        var firstPlayer = new Player(firstDeck);
+        var secondPlayer = new Player(secondDeck);
 
         InitializePlayerHands(firstPlayer, secondPlayer);
 
