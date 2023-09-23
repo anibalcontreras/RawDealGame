@@ -34,18 +34,18 @@ public class Game
 
     private void PlayGame(Player firstPlayer, Player secondPlayer)
     {
-        while (_playerTurn.GameOn)
+        while (true)
         {
-            PlayTurnAndCheckGameStatus(firstPlayer, secondPlayer);
-            if (!_playerTurn.GameOn)
+            if (!PlayTurnAndCheckGameStatus(firstPlayer, secondPlayer))
                 break;
 
-            PlayTurnAndCheckGameStatus(secondPlayer, firstPlayer);
+            if (!PlayTurnAndCheckGameStatus(secondPlayer, firstPlayer))
+                break;
         }
     }
 
-    private void PlayTurnAndCheckGameStatus(Player currentPlayer, Player opponentPlayer)
+    private bool PlayTurnAndCheckGameStatus(Player currentPlayer, Player opponentPlayer)
     {
-        _playerTurn.PlayTurn(currentPlayer, opponentPlayer);
+        return _playerTurn.PlayTurn(currentPlayer, opponentPlayer);
     }
 }

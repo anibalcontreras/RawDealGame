@@ -52,18 +52,17 @@ public class PlayerTurn
             case NextPlay.ShowCards:
                 HandleShowCardsActions(firstPlayer, secondPlayer);
                 break;
-
             case NextPlay.PlayCard:
                 HandlePlayCardAction(firstPlayer, secondPlayer);
+                if (!GameOn) return false;
                 break;
             case NextPlay.EndTurn:
-                HandleEndTurnAction();
+                HandleEndTurnAction(firstPlayer, secondPlayer);
                 return false;
             case NextPlay.GiveUp:
-                HandleGiveUpAction();
+                HandleGiveUpAction(secondPlayer);
                 return false;
         }
-
         return true;
     }
     private void HandlePlayCardAction(Player firstPlayer, Player secondPlayer)
@@ -128,8 +127,11 @@ public class PlayerTurn
         CurrentPlayer.ApplyDamage(indexOfCardInHand);
     }
 
-    private void HandleEndTurnAction()
+    private void HandleEndTurnAction(Player firstPlayer, Player secondPlayer)
     {
+        CurrentPlayer = firstPlayer;
+        Opponent = secondPlayer;
+
         if (Opponent.HasEmptyArsenal())
         {
             EndGame(CurrentPlayer);
@@ -137,17 +139,16 @@ public class PlayerTurn
         TurnOn = false;
     }
 
-    private void HandleGiveUpAction()
+    private void HandleGiveUpAction(Player opponentPlayer)
     {
-        EndGame(CurrentPlayer);
+        EndGame(opponentPlayer);
     }
 
-    private bool EndGame(Player winningPlayer)
+    private void EndGame(Player winningPlayer)
     {
         TurnOn = false;
         GameOn = false;
         _view.CongratulateWinner(winningPlayer.Superstar.Name);
-        return false;
     }
 
     private void HandleShowCardsActions(Player firstPlayer, Player secondPlayer)
