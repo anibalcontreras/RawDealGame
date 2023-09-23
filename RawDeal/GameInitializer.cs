@@ -30,67 +30,55 @@ public class GameInitializer
 
         DeckLoader.InitializeDeckLoader();
         
-        Deck firstDeck = InitializeDeck("first");
-        Deck secondDeck = InitializeDeck("second");
-        if (firstDeck == null || secondDeck == null)
-        {
-            return new GameInitializationResult();
-        }
-
-
-        var (firstPlayer, secondPlayer) = InitializePlayers(firstDeck, secondDeck);
-        
+        var firstDeck = InitializeFirstDeck();
+        if (firstDeck == null)
+            return result;
+        var secondDeck = InitializeSecondDeck();
+        if (secondDeck == null)
+            return result;
+        var firstPlayer = new Player(firstDeck, _view);
+        var secondPlayer = new Player(secondDeck, _view);
 
         InitializePlayerHands(firstPlayer, secondPlayer);
 
-        var (startingPlayer, otherPlayer) = DeterminePlayerOrder(firstPlayer, secondPlayer);
-
-        return CreateInitializationResult(startingPlayer, otherPlayer);
-    }
-
-    private (Player, Player) InitializePlayers(Deck firstDeck, Deck secondDeck)
-    {
-        Player firstPlayer = new (firstDeck, _view);
-        Player secondPlayer = new (secondDeck, _view);
-        return (firstPlayer, secondPlayer);
-    }
-
-    private GameInitializationResult CreateInitializationResult(Player startingPlayer, Player otherPlayer)
-    {
-        return new GameInitializationResult
-        {
-            FirstPlayer = startingPlayer,
-            SecondPlayer = otherPlayer,
-            IsSuccess = true
-        };
-    }
-
-    private (Player, Player) DeterminePlayerOrder(Player firstPlayer, Player secondPlayer)
-    {
-        var startingPlayer = firstPlayer.Superstar.SuperstarValue >= secondPlayer.Superstar.SuperstarValue ? firstPlayer : secondPlayer;
+        var startingPlayer = DetermineStartingPlayer(firstPlayer, secondPlayer);
         var otherPlayer = (startingPlayer == firstPlayer) ? secondPlayer : firstPlayer;
-        return (startingPlayer, otherPlayer);
+
+        result.FirstPlayer = startingPlayer;
+        result.SecondPlayer = otherPlayer;
+        result.IsSuccess = true;
+
+        return result;
     }
 
     private Deck GetAndValidateDeck()
-    {   
+    {
+        var allAvailableSuperstars = SuperstarLoader.LoadSuperstarsIntoDictionary();
         string deckPath = _view.AskUserToSelectDeck(_deckFolder);
         Deck deck = DeckLoader.LoadDeck(deckPath);
-        Dictionary<string, Superstar> allAvailableSuperstars = SuperstarLoader.LoadSuperstarsIntoDictionary();
-
         var validationResult = DeckValidator.IsValidDeck(deck, allAvailableSuperstars);
 
         return validationResult.IsValid ? deck : null;
     }
 
-    private Deck? InitializeDeck(string playerOrder)
+    private Deck? InitializeFirstDeck()
     {
-        var deck = GetAndValidateDeck();
-        if (deck == null)
+        var firstDeck = GetAndValidateDeck();
+        if (firstDeck == null)
         {
             _view.SayThatDeckIsInvalid();
         }
-        return deck;
+        return firstDeck;
+    }
+
+    private Deck? InitializeSecondDeck()
+    {
+        var secondDeck = GetAndValidateDeck();
+        if (secondDeck == null)
+        {
+            _view.SayThatDeckIsInvalid();
+        }
+        return secondDeck;
     }
 
 

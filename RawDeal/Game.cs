@@ -22,22 +22,34 @@ public class Game
 
     public void Play()
     {
-        var initResult = _gameInitializer.InitializeGame();
+        var initResult = InitializeGame();
         if (!initResult.IsSuccess)
             return;
-        
-        Player firstPlayer = initResult.FirstPlayer;
-        Player secondPlayer = initResult.SecondPlayer;
 
+        PlayGame(initResult.FirstPlayer, initResult.SecondPlayer);
+    }
+    private GameInitializationResult InitializeGame()
+    {
+        return _gameInitializer.InitializeGame();
+    }
+
+    private void PlayGame(Player firstPlayer, Player secondPlayer)
+    {
         bool gameOn = true;
         while (gameOn)
         {
-            // HandleGameActions(firstPlayer, secondPlayer, ref gameOn);
-            _playerTurn.PlayTurn(firstPlayer, secondPlayer, ref gameOn);
+            gameOn = PlayTurnAndCheckGameStatus(firstPlayer, secondPlayer);
             if (!gameOn)
                 break;
-            _playerTurn.PlayTurn(secondPlayer, firstPlayer, ref gameOn);
+
+            gameOn = PlayTurnAndCheckGameStatus(secondPlayer, firstPlayer);
         }
     }
 
+    private bool PlayTurnAndCheckGameStatus(Player currentPlayer, Player opponentPlayer)
+    {
+        bool gameOn = true;
+        _playerTurn.PlayTurn(currentPlayer, opponentPlayer, ref gameOn);
+        return gameOn;
+    }
 }
