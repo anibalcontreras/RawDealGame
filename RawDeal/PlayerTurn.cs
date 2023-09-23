@@ -8,16 +8,23 @@ public class PlayerTurn
 {
     private readonly View _view;
 
+    private Player CurrentPlayer { get; set; }
+    private Player Opponent { get; set; }
+    private List<Card> PlayableCards { get; set; }
+    private int SelectedPlayIndex { get; set; }
+    public bool GameOn { get; set; } = true;
+    public bool TurnOn { get; set; } = true;
+
     public PlayerTurn(View view)
     {
         _view = view;
     }
 
-    public bool PlayTurn(Player firstPlayer, Player secondPlayer, ref bool gameOn)
+    public bool PlayTurn(Player firstPlayer, Player secondPlayer)
     {
         StartPlayerTurn(firstPlayer);
-        ExecutePlayerActions(firstPlayer, secondPlayer, ref gameOn);
-        return gameOn;
+        ExecutePlayerActions(firstPlayer, secondPlayer);
+        return GameOn;
     }
 
     private void StartPlayerTurn(Player player)
@@ -26,16 +33,16 @@ public class PlayerTurn
         _view.SayThatATurnBegins(player.Superstar.Name);
     }
 
-    private void ExecutePlayerActions(Player firstPlayer, Player secondPlayer, ref bool gameOn)
+    private void ExecutePlayerActions(Player firstPlayer, Player secondPlayer)
     {
-        bool turnOn = true;
-        while (turnOn)
+        bool continueTurn = true;
+        while (continueTurn)
         {
-            HandleTurnActions(firstPlayer, secondPlayer, ref turnOn, ref gameOn);
+            continueTurn = HandleTurnActions(firstPlayer, secondPlayer);
         }
     }
 
-    private void HandleTurnActions(Player firstPlayer, Player secondPlayer, ref bool turnOn, ref bool gameOn)
+    private bool HandleTurnActions(Player firstPlayer, Player secondPlayer)
     {
         _view.ShowGameInfo(firstPlayer.ToPlayerInfo(), secondPlayer.ToPlayerInfo());
         NextPlay turnActionsSelections = _view.AskUserWhatToDoWhenHeCannotUseHisAbility();
@@ -45,99 +52,104 @@ public class PlayerTurn
             case NextPlay.ShowCards:
                 HandleShowCardsActions(firstPlayer, secondPlayer);
                 break;
+
             case NextPlay.PlayCard:
-                HandlePlayCardAction(firstPlayer, secondPlayer, ref turnOn, ref gameOn);
+                HandlePlayCardAction(firstPlayer, secondPlayer);
                 break;
             case NextPlay.EndTurn:
-                HandleEndTurnAction(firstPlayer, secondPlayer, ref turnOn, ref gameOn);
-                break;
+                HandleEndTurnAction();
+                return false;
             case NextPlay.GiveUp:
-                HandleGiveUpAction(firstPlayer, ref turnOn, ref gameOn);
-                break;
+                HandleGiveUpAction();
+                return false;
         }
+
+        return true;
     }
-
-    private void HandlePlayCardAction(Player firstPlayer, Player secondPlayer, ref bool turnOn, ref bool gameOn)
+    private void HandlePlayCardAction(Player firstPlayer, Player secondPlayer)
     {
-        List<Card> playableCards = Play.GetPlayableCards(firstPlayer.Hand, firstPlayer.Fortitude);
-        List<string> formattedPlayableCards = Play.GetFormattedPlayableCards(playableCards, firstPlayer.Fortitude);
+        CurrentPlayer = firstPlayer;
+        Opponent = secondPlayer;
 
-        int indexPlay = _view.AskUserToSelectAPlay(formattedPlayableCards);
+        PlayableCards = Play.GetPlayableCards(CurrentPlayer.Hand, CurrentPlayer.Fortitude);
+        List<string> formattedPlayableCards = Play.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude);
 
-        if (indexPlay == -1)
+        SelectedPlayIndex = _view.AskUserToSelectAPlay(formattedPlayableCards);
+
+        if (SelectedPlayIndex == -1)
             return;
 
-        ExecuteCardPlay(firstPlayer, secondPlayer, playableCards, formattedPlayableCards, indexPlay, ref turnOn, ref gameOn);
+        ExecuteCardPlay();
     }
 
-    private void ExecuteCardPlay(Player firstPlayer, Player secondPlayer, List<Card> playableCards, List<string> formattedPlayableCards, int indexPlay, ref bool turnOn, ref bool gameOn)
+    private void ExecuteCardPlay()
     {
-        AnnounceCardPlay(firstPlayer, formattedPlayableCards, indexPlay);
-        
-        int cardDamage = CalculateCardDamage(firstPlayer, indexPlay);
-        AnnounceDamageToOpponent(secondPlayer, cardDamage);
+        AnnounceCardPlay();
+        int cardDamage = CalculateCardDamage();
+        AnnounceDamageToOpponent(cardDamage);
 
-        bool hasLost = ApplyCardDamageToOpponent(secondPlayer, cardDamage);
+        bool hasLost = ApplyCardDamageToOpponent(cardDamage);
         if (hasLost)
         {
-            EndGame(firstPlayer, ref turnOn, ref gameOn);
+            EndGame(CurrentPlayer);
             return;
         }
 
-        ApplyCardEffect(firstPlayer, playableCards, indexPlay);
+        ApplyCardEffect();
     }
 
-    private void AnnounceCardPlay(Player player, List<string> formattedPlayableCards, int indexPlay)
+    private void AnnounceCardPlay()
     {
-        string selectedPlay = formattedPlayableCards[indexPlay];
-        _view.SayThatPlayerIsTryingToPlayThisCard(player.Superstar.Name, selectedPlay);
+        string selectedPlay = Play.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude)[SelectedPlayIndex];
+        _view.SayThatPlayerIsTryingToPlayThisCard(CurrentPlayer.Superstar.Name, selectedPlay);
         _view.SayThatPlayerSuccessfullyPlayedACard();
     }
 
-    private int CalculateCardDamage(Player player, int indexPlay)
+    private int CalculateCardDamage()
     {
-        List<Play> playablePlays = Play.GetPlayablePlays(player.Hand, player.Fortitude);
-        return playablePlays[indexPlay].GetCardDamageAsInt();
+        List<Play> playablePlays = Play.GetPlayablePlays(CurrentPlayer.Hand, CurrentPlayer.Fortitude);
+        return playablePlays[SelectedPlayIndex].GetCardDamageAsInt();
     }
 
-    private void AnnounceDamageToOpponent(Player opponent, int cardDamage)
+    private void AnnounceDamageToOpponent(int cardDamage)
     {
-        _view.SayThatSuperstarWillTakeSomeDamage(opponent.Superstar.Name, cardDamage);
+        _view.SayThatSuperstarWillTakeSomeDamage(Opponent.Superstar.Name, cardDamage);
     }
 
-    private bool ApplyCardDamageToOpponent(Player opponent, int cardDamage)
+    private bool ApplyCardDamageToOpponent(int cardDamage)
     {
-        return opponent.ReceiveDamage(cardDamage);
+        return Opponent.ReceiveDamage(cardDamage);
     }
 
-    private void ApplyCardEffect(Player player, List<Card> playableCards, int indexPlay)
+    private void ApplyCardEffect()
     {
-        Card playedCard = playableCards[indexPlay];
-        int indexOfCardInHand = player.Hand.FindIndex(card => ReferenceEquals(card, playedCard));
-        player.ApplyDamage(indexOfCardInHand);
+        Card playedCard = PlayableCards[SelectedPlayIndex];
+        int indexOfCardInHand = CurrentPlayer.Hand.FindIndex(card => ReferenceEquals(card, playedCard));
+        CurrentPlayer.ApplyDamage(indexOfCardInHand);
     }
 
-
-    private void HandleEndTurnAction(Player firstPlayer, Player secondPlayer, ref bool turnOn, ref bool gameOn)
+    private void HandleEndTurnAction()
     {
-        if (secondPlayer.HasEmptyArsenal())
+        if (Opponent.HasEmptyArsenal())
         {
-            EndGame(firstPlayer, ref turnOn, ref gameOn);
+            EndGame(CurrentPlayer);
         }
-        turnOn = false;
+        TurnOn = false;
     }
 
-    private void HandleGiveUpAction(Player firstPlayer, ref bool turnOn, ref bool gameOn)
+    private void HandleGiveUpAction()
     {
-        EndGame(firstPlayer, ref turnOn, ref gameOn);
+        EndGame(CurrentPlayer);
     }
 
-    private void EndGame(Player winningPlayer, ref bool turnOn, ref bool gameOn)
+    private bool EndGame(Player winningPlayer)
     {
-        turnOn = false;
-        gameOn = false;
+        TurnOn = false;
+        GameOn = false;
         _view.CongratulateWinner(winningPlayer.Superstar.Name);
+        return false;
     }
+
     private void HandleShowCardsActions(Player firstPlayer, Player secondPlayer)
     {
         CardSet showCardsActionsSelection = _view.AskUserWhatSetOfCardsHeWantsToSee();

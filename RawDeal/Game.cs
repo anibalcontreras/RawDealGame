@@ -1,4 +1,3 @@
-using System.Reflection;
 using RawDealView;
 
 namespace RawDeal;
@@ -9,7 +8,6 @@ public class Game
     private readonly string _deckFolder;
 
     private readonly GameInitializer _gameInitializer;
-
     private readonly PlayerTurn _playerTurn;
 
     public Game(View view, string deckFolder)
@@ -28,6 +26,7 @@ public class Game
 
         PlayGame(initResult.FirstPlayer, initResult.SecondPlayer);
     }
+
     private GameInitializationResult InitializeGame()
     {
         return _gameInitializer.InitializeGame();
@@ -35,21 +34,18 @@ public class Game
 
     private void PlayGame(Player firstPlayer, Player secondPlayer)
     {
-        bool gameOn = true;
-        while (gameOn)
+        while (_playerTurn.GameOn)
         {
-            gameOn = PlayTurnAndCheckGameStatus(firstPlayer, secondPlayer);
-            if (!gameOn)
+            PlayTurnAndCheckGameStatus(firstPlayer, secondPlayer);
+            if (!_playerTurn.GameOn)
                 break;
 
-            gameOn = PlayTurnAndCheckGameStatus(secondPlayer, firstPlayer);
+            PlayTurnAndCheckGameStatus(secondPlayer, firstPlayer);
         }
     }
 
-    private bool PlayTurnAndCheckGameStatus(Player currentPlayer, Player opponentPlayer)
+    private void PlayTurnAndCheckGameStatus(Player currentPlayer, Player opponentPlayer)
     {
-        bool gameOn = true;
-        _playerTurn.PlayTurn(currentPlayer, opponentPlayer, ref gameOn);
-        return gameOn;
+        _playerTurn.PlayTurn(currentPlayer, opponentPlayer);
     }
 }

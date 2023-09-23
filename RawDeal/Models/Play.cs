@@ -16,44 +16,28 @@ public class Play : IViewablePlayInfo
     public IViewableCardInfo CardInfo => _cardInfo;
     public string PlayedAs => _playedAs;
 
-    public override string ToString()
-    {
-        return Formatter.PlayToString(this);
-    }
+    private bool IsPlayable(int playerFortitude) =>
+        (IsManeuverOrAction && CardFortitude <= playerFortitude);
 
-    private bool IsPlayable(int playerFortitude)
-    {
-        int cardFortitude = int.Parse(_cardInfo.Fortitude);
+    private bool IsManeuverOrAction => 
+        _cardInfo.Types.Contains("Maneuver") || _cardInfo.Types.Contains("Action");
 
-        return (_cardInfo.Types.Contains("Maneuver") || _cardInfo.Types.Contains("Action")) && cardFortitude <= playerFortitude;
-    }
+    private int CardFortitude => int.Parse(_cardInfo.Fortitude);
 
     public int GetCardDamageAsInt()
     {
         string damage = _cardInfo.Damage;
         return int.Parse(damage);
     }
+    public static List<string> GetFormattedPlayableCards(List<Card> cards, int playerFortitude) =>
+        GetPlayablePlays(cards, playerFortitude).Select(Formatter.PlayToString).ToList();
 
-    public static List<string> GetFormattedPlayableCards(List<Card> cards, int playerFortitude)
-    {
-        List<Play> playablePlays = GetPlayablePlays(cards, playerFortitude);
-        return playablePlays.Select(Formatter.PlayToString).ToList();
-    }
+    public static List<Play> GetPlayablePlays(List<Card> cards, int playerFortitude) =>
+        ConvertCardsToPlays(cards).Where(play => play.IsPlayable(playerFortitude)).ToList();
 
+    private static List<Play> ConvertCardsToPlays(List<Card> cards) =>
+        cards.Select(card => new Play(card, card.GetTypesAsString())).ToList();
 
-    public static List<Play> GetPlayablePlays(List<Card> cards, int playerFortitude)
-    {
-        List<Play> plays = ConvertCardsToPlays(cards);
-        return plays.Where(play => play.IsPlayable(playerFortitude)).ToList();
-    }
-
-    private static List<Play> ConvertCardsToPlays(List<Card> cards)
-    {
-        return cards.Select(card => new Play(card, card.GetTypesAsString())).ToList();
-    }
-
-    public static List<Card> GetPlayableCards(List<Card> cards, int playerFortitude)
-    {
-        return cards.Where(card => new Play(card, card.GetTypesAsString()).IsPlayable(playerFortitude)).ToList();
-    }
+    public static List<Card> GetPlayableCards(List<Card> cards, int playerFortitude) =>
+        cards.Where(card => new Play(card, card.GetTypesAsString()).IsPlayable(playerFortitude)).ToList();
 }
