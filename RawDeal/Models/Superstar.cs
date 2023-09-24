@@ -30,7 +30,6 @@ public abstract class Superstar
     {
         HasUsedAbility = false;
     }
-        
     public AbilityActivation ActivationMoment { get; set; } = AbilityActivation.None;
 
 }
