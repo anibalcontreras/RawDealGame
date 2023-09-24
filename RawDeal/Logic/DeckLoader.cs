@@ -16,7 +16,7 @@ public static class DeckLoader
     public static Deck LoadDeck(string path)
     {
         ValidateFile(path);
-        var lines = File.ReadAllLines(path);
+        string[] lines = File.ReadAllLines(path);
         ValidateLines(lines, path);
 
         return CreateDeckFromLines(lines);
@@ -24,8 +24,8 @@ public static class DeckLoader
 
     private static void LoadAllCards()
     {
-        var cards = CardLoader.LoadCardsFromJson();
-        foreach (var card in cards)
+        List<Card> cards = CardLoader.LoadCardsFromJson();
+        foreach (Card card in cards)
         {
             allAvailableCards[card.Title] = card;
         }
@@ -33,10 +33,10 @@ public static class DeckLoader
 
     private static void LoadAllSuperstars()
     {
-        var superstarsData = SuperstarLoader.LoadSuperstarsFromJson();
-        foreach (var superstarData in superstarsData)
+        List<SuperstarData> superstarsData = SuperstarLoader.LoadSuperstarsFromJson();
+        foreach (SuperstarData superstarData in superstarsData)
         {
-            var superstar = SuperstarFactory.CreateSuperstar(superstarData.Logo);
+            Superstar superstar = SuperstarFactory.CreateSuperstar(superstarData.Logo);
             superstar.Name = superstarData.Name;
             superstar.Logo = superstarData.Logo;
             superstar.HandSize = superstarData.HandSize;

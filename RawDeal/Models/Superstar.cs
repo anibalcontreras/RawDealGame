@@ -131,7 +131,7 @@ public static class SuperstarFactory
             case "Jericho":
                 return new Jericho();
             default:
-                throw new ArgumentException($"No superstar found with the logo {logo}");
+                throw new ArgumentException($"No se encontró el siguiente Superstar: {logo}");
         }
     }
 }

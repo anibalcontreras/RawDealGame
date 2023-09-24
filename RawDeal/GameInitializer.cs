@@ -27,27 +27,32 @@ public class GameInitializer
 
         DeckLoader.InitializeDeckLoader();
 
-        Deck firstDeck = InitializeFirstDeck();
+        Deck? firstDeck = InitializeDeck();
         if (firstDeck == null)
             return result;
 
-        Deck secondDeck = InitializeSecondDeck();
+        Deck? secondDeck = InitializeDeck();
         if (secondDeck == null)
             return result;
 
-        Player firstPlayer = new Player(firstDeck, _view);
-        Player secondPlayer = new Player(secondDeck, _view);
-
-        InitializePlayerHands(firstPlayer, secondPlayer);
-
-        Player startingPlayer = DetermineStartingPlayer(firstPlayer, secondPlayer);
-        Player otherPlayer = (startingPlayer == firstPlayer) ? secondPlayer : firstPlayer;
+        SetPlayers(firstDeck, secondDeck, out Player startingPlayer, out Player otherPlayer);
 
         result.FirstPlayer = startingPlayer;
         result.SecondPlayer = otherPlayer;
         result.IsSuccess = true;
 
         return result;
+    }
+
+    private void SetPlayers(Deck firstDeck, Deck secondDeck, out Player startingPlayer, out Player otherPlayer)
+    {
+        Player firstPlayer = new Player(firstDeck, _view);
+        Player secondPlayer = new Player(secondDeck, _view);
+
+        InitializePlayerHands(firstPlayer, secondPlayer);
+
+        startingPlayer = DetermineStartingPlayer(firstPlayer, secondPlayer);
+        otherPlayer = (startingPlayer == firstPlayer) ? secondPlayer : firstPlayer;
     }
 
 
@@ -59,24 +64,14 @@ public class GameInitializer
         return DeckValidator.IsValidDeck(deck, allAvailableSuperstars).IsValid ? deck : null;
     }
 
-    private Deck? InitializeFirstDeck()
+    private Deck? InitializeDeck()
     {
-        Deck? firstDeck = GetAndValidateDeck();
-        if (firstDeck == null)
+        Deck? deck = GetAndValidateDeck();
+        if (deck == null)
         {
             _view.SayThatDeckIsInvalid();
         }
-        return firstDeck;
-    }
-
-    private Deck? InitializeSecondDeck()
-    {
-        Deck? secondDeck = GetAndValidateDeck();
-        if (secondDeck == null)
-        {
-            _view.SayThatDeckIsInvalid();
-        }
-        return secondDeck;
+        return deck;
     }
 
     private Player DetermineStartingPlayer(Player firstPlayer, Player secondPlayer)
