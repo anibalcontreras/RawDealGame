@@ -4,14 +4,16 @@ using RawDealView.Formatters;
 
 public class Player
 {
-    public Superstar Superstar { get; private set; } = new Superstar();
+    public Superstar Superstar { get; private set; }
     private List<Card> Hand { get; } = new List<Card>();
     private List<Card> Arsenal { get; } = new List<Card>();
     private List<Card> Ringside { get; } = new List<Card>();
     private List<Card> RingArea { get; } = new List<Card>();
     private readonly View _view;
 
-    public int Fortitude => RingArea.Sum(card => int.Parse(card.Damage));
+    private int _baseFortitude = 0;
+
+    public int Fortitude => _baseFortitude + RingArea.Sum(card => int.Parse(card.Damage));
 
     public List<Card> GetHand()
     {

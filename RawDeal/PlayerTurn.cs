@@ -42,8 +42,19 @@ public class PlayerTurn
         }
     }
 
+    private void ActivateSuperstarAbility(Player player, Player opponent, AbilityActivation activationMoment)
+    {
+        if (player.Superstar.ActivationMoment == activationMoment && !player.Superstar.HasUsedAbility)
+        {
+            _view.SayThatPlayerIsGoingToUseHisAbility(player.Superstar.Name, player.Superstar.SuperstarAbility);
+            _view.SayThatSuperstarWillTakeSomeDamage(opponent.Superstar.Name, 1);
+            player.Superstar.UseAbility(player, opponent);
+        }
+    }
+
     private bool HandleTurnActions(Player firstPlayer, Player secondPlayer)
     {
+        ActivateSuperstarAbility(firstPlayer, secondPlayer, AbilityActivation.StartOfTurn);
         _view.ShowGameInfo(firstPlayer.ToPlayerInfo(), secondPlayer.ToPlayerInfo());
         NextPlay turnActionsSelections = _view.AskUserWhatToDoWhenHeCannotUseHisAbility();
 
@@ -137,6 +148,12 @@ public class PlayerTurn
             EndGame(CurrentPlayer);
         }
         TurnOn = false;
+        ResetAbilityUsage();
+    }
+
+    private void ResetAbilityUsage()
+    {
+        CurrentPlayer.Superstar.ResetAbilityUsage();
     }
 
     private void HandleGiveUpAction(Player opponentPlayer)

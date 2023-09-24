@@ -33,12 +33,21 @@ public static class DeckLoader
 
     private static void LoadAllSuperstars()
     {
-        var superstars = SuperstarLoader.LoadSuperstarsFromJson();
-        foreach (var superstar in superstars)
+        var superstarsData = SuperstarLoader.LoadSuperstarsFromJson();
+        foreach (var superstarData in superstarsData)
         {
+            var superstar = SuperstarFactory.CreateSuperstar(superstarData.Logo);
+            superstar.Name = superstarData.Name;
+            superstar.Logo = superstarData.Logo;
+            superstar.HandSize = superstarData.HandSize;
+            superstar.SuperstarValue = superstarData.SuperstarValue;
+            superstar.SuperstarAbility = superstarData.SuperstarAbility;
+            superstar.SuperstarCard = superstarData.SuperstarCard;
+            
             allAvailableSuperstars[superstar.Name] = superstar;
         }
     }
+
 
     private static void ValidateFile(string path)
     {
@@ -58,9 +67,10 @@ public static class DeckLoader
 
     private static Deck CreateDeckFromLines(string[] lines)
     {
-        var deck = new Deck
+        Superstar superstar = GetSuperstarByName(lines[0].Replace(SuperstarCardSuffix, ""));
+        var deck = new Deck(superstar)
         {
-            Superstar = GetSuperstarByName(lines[0].Replace(SuperstarCardSuffix, "")),
+            // Superstar = GetSuperstarByName(lines[0].Replace(SuperstarCardSuffix, "")),
             Cards = new List<Card>()
         };
 
