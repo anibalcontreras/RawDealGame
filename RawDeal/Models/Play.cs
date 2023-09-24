@@ -17,7 +17,7 @@ public class Play : IViewablePlayInfo
     public string PlayedAs => _playedAs;
 
     private bool IsPlayable(int playerFortitude) =>
-        (IsManeuverOrAction && CardFortitude <= playerFortitude);
+        IsManeuverOrAction && CardFortitude <= playerFortitude;
 
     private bool IsManeuverOrAction => 
         _cardInfo.Types.Contains("Maneuver") || _cardInfo.Types.Contains("Action");

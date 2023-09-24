@@ -1,5 +1,3 @@
-using RawDealView;
-
 namespace RawDeal.Models;
 
 public class SuperstarData
@@ -11,8 +9,6 @@ public class SuperstarData
     public string SuperstarAbility { get; set; } = string.Empty;
     public Card SuperstarCard { get; set; } = new Card();
 }
-
-
 public abstract class Superstar
 {
     public string Name { get; set; } = string.Empty;
@@ -31,7 +27,6 @@ public abstract class Superstar
         HasUsedAbility = false;
     }
     public AbilityActivation ActivationMoment { get; set; } = AbilityActivation.None;
-
 }
 
 public class HHH : Superstar
@@ -147,7 +142,3 @@ public enum AbilityActivation
     DrawSegment,
     None
 }
-
-
-
-

@@ -1,5 +1,4 @@
 using RawDeal.Models;
-using RawDealView;
 using System.Text.Json;
 
 namespace RawDeal.Logic;
@@ -48,7 +47,6 @@ public static class SuperstarLoader
             superstar.SuperstarCard = superstarData.SuperstarCard;
             superstarsDict[superstar.Logo] = superstar;
         }
-
         return superstarsDict;
     }
 

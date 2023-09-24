@@ -55,6 +55,7 @@ public class PlayerTurn
     private bool HandleTurnActions(Player firstPlayer, Player secondPlayer)
     {
         ActivateSuperstarAbility(firstPlayer, secondPlayer, AbilityActivation.StartOfTurn);
+        
         _view.ShowGameInfo(firstPlayer.ToPlayerInfo(), secondPlayer.ToPlayerInfo());
         NextPlay turnActionsSelections = _view.AskUserWhatToDoWhenHeCannotUseHisAbility();
 
