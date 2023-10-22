@@ -1,35 +1,42 @@
-namespace RawDeal;
-
+using RawDeal.Models.Effects;
 using RawDealView;
 using RawDealView.Options;
 using RawDeal.Models;
+using RawDeal.Models.Reversals;
 
+namespace RawDeal;
 public class PlayerTurn
 {
     private readonly View _view;
-
     private Player CurrentPlayer { get; set; }
     private Player Opponent { get; set; }
     private List<Card> PlayableCards { get; set; }
     private int SelectedPlayIndex { get; set; }
-    public bool GameOn { get; set; } = true;
-    public bool TurnOn { get; set; } = true;
-    
+    private bool GameOn { get; set; } = true;
+    private bool TurnOn { get; set; } = true;
+    private EffectCatalog _effectCatalog;
+    // private ReversalCatalog _reversalCatalog;
     public PlayerTurn(View view)
     {
         _view = view;
+        _effectCatalog = new EffectCatalog(view);
+        // _reversalCatalog = new ReversalCatalog(view);
     }
-
     public bool PlayTurn(Player firstPlayer, Player secondPlayer)
     {
         StartPlayerTurn(firstPlayer);
+        ActivateSuperstarsAbility(firstPlayer, secondPlayer);
         ExecutePlayerActions(firstPlayer, secondPlayer);
         return GameOn;
     }
-
     private void StartPlayerTurn(Player player)
     {
         player.DrawCard();
+        _view.SayThatATurnBegins(player.Superstar.Name);
+    }
+
+    private void StartTurnByReversalByDeck(Player player)
+    {
         _view.SayThatATurnBegins(player.Superstar.Name);
     }
 
@@ -41,24 +48,41 @@ public class PlayerTurn
             continueTurn = HandleTurnActions(firstPlayer, secondPlayer);
         }
     }
-
-    private void ActivateSuperstarAbility(Player player, Player opponent, AbilityActivation activationMoment)
+    private NextPlay DetermineIfSuperstarCanActivateHisAbility(Player player)
     {
-        if (player.Superstar.ActivationMoment == activationMoment && !player.Superstar.HasUsedAbility)
-        {
-            _view.SayThatPlayerIsGoingToUseHisAbility(player.Superstar.Name, player.Superstar.SuperstarAbility);
-            _view.SayThatSuperstarWillTakeSomeDamage(opponent.Superstar.Name, 1);
-            player.Superstar.UseAbility(player, opponent);
-        }
+        if (CanActivateAbility(player))
+            return _view.AskUserWhatToDoWhenUsingHisAbilityIsPossible();
+    
+        return _view.AskUserWhatToDoWhenHeCannotUseHisAbility();
     }
 
+    private bool CanActivateAbility(Player player)
+    {
+        return !player.Superstar.HasUsedAbility &&
+               player.Superstar.ActivationMoment == AbilityActivation.InMenu &&
+               player.Superstar.CanUseAbility(player);
+    }
+    private void ActivateStartOfTurnAbility(Player firstPlayer, Player secondPlayer)
+    {
+        firstPlayer.Superstar.ActivateAbility(firstPlayer, secondPlayer, AbilityActivation.StartOfTurn);
+    }
+    private void ActivateAutomaticSuperstarAbility(Player firstPlayer, Player secondPlayer)
+    {
+        if (!firstPlayer.Superstar.HasUsedAbility &&
+            firstPlayer.Superstar.ActivationMoment == AbilityActivation.Automatic)
+            firstPlayer.Superstar.ActivateAbility(firstPlayer, secondPlayer, AbilityActivation.Automatic);
+    }
+    private void ActivateSuperstarsAbility(Player firstPlayer, Player secondPlayer)
+    {
+        ActivateAutomaticSuperstarAbility(firstPlayer, secondPlayer);
+        ActivateStartOfTurnAbility(firstPlayer, secondPlayer);
+    }
     private bool HandleTurnActions(Player firstPlayer, Player secondPlayer)
     {
-        ActivateSuperstarAbility(firstPlayer, secondPlayer, AbilityActivation.StartOfTurn);
+        _view.ShowGameInfo(firstPlayer.PlayerInfo(), secondPlayer.PlayerInfo());
         
-        _view.ShowGameInfo(firstPlayer.ToPlayerInfo(), secondPlayer.ToPlayerInfo());
-        NextPlay turnActionsSelections = _view.AskUserWhatToDoWhenHeCannotUseHisAbility();
-
+        NextPlay turnActionsSelections = DetermineIfSuperstarCanActivateHisAbility(firstPlayer);
+        
         switch(turnActionsSelections)
         {
             case NextPlay.ShowCards:
@@ -67,6 +91,9 @@ public class PlayerTurn
             case NextPlay.PlayCard:
                 HandlePlayCardAction(firstPlayer, secondPlayer);
                 if (!GameOn) return false;
+                break;
+            case NextPlay.UseAbility:
+                firstPlayer.Superstar.ActivateAbility(firstPlayer, secondPlayer, AbilityActivation.InMenu);
                 break;
             case NextPlay.EndTurn:
                 HandleEndTurnAction(firstPlayer, secondPlayer);
@@ -77,36 +104,33 @@ public class PlayerTurn
         }
         return true;
     }
+    
     private void HandlePlayCardAction(Player firstPlayer, Player secondPlayer)
     {
         CurrentPlayer = firstPlayer;
         Opponent = secondPlayer;
-
         PlayableCards = Play.GetPlayableCards(CurrentPlayer.GetHand(), CurrentPlayer.Fortitude);
         List<string> formattedPlayableCards = Play.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude);
-
         SelectedPlayIndex = _view.AskUserToSelectAPlay(formattedPlayableCards);
-
         if (SelectedPlayIndex == -1)
             return;
-
         ExecuteCardPlay();
+    }
+    private void ApplyCardSpecialEffect()
+    {
+        List<Play> playablePlays = Play.GetPlayablePlays(CurrentPlayer.GetHand(), CurrentPlayer.Fortitude);
+        Play selectedPlay = playablePlays[SelectedPlayIndex];
+        Card playedCard = selectedPlay.CardInfo as Card;
+        Effect cardEffect = _effectCatalog.GetEffectBy(playedCard.Title, selectedPlay.PlayedAs);
+        bool hasLost = cardEffect.Apply(CurrentPlayer, Opponent, playedCard);
+        if (hasLost)
+            EndGame(CurrentPlayer);
     }
 
     private void ExecuteCardPlay()
     {
         AnnounceCardPlay();
-        int cardDamage = CalculateCardDamage();
-        AnnounceDamageToOpponent(cardDamage);
-
-        bool hasLost = ApplyCardDamageToOpponent(cardDamage);
-        if (hasLost)
-        {
-            EndGame(CurrentPlayer);
-            return;
-        }
-
-        ApplyCardEffect();
+        ApplyCardSpecialEffect();
     }
 
     private void AnnounceCardPlay()
@@ -115,46 +139,23 @@ public class PlayerTurn
         _view.SayThatPlayerIsTryingToPlayThisCard(CurrentPlayer.Superstar.Name, selectedPlay);
         _view.SayThatPlayerSuccessfullyPlayedACard();
     }
-
-    private int CalculateCardDamage()
-    {
-        List<Play> playablePlays = Play.GetPlayablePlays(CurrentPlayer.GetHand(), CurrentPlayer.Fortitude);
-        return playablePlays[SelectedPlayIndex].GetCardDamageAsInt();
-    }
-
-    private void AnnounceDamageToOpponent(int cardDamage)
-    {
-        _view.SayThatSuperstarWillTakeSomeDamage(Opponent.Superstar.Name, cardDamage);
-    }
-
-    private bool ApplyCardDamageToOpponent(int cardDamage)
-    {
-        return Opponent.ReceiveDamage(cardDamage);
-    }
-
-    private void ApplyCardEffect()
-    {
-        Card playedCard = PlayableCards[SelectedPlayIndex];
-        int indexOfCardInHand = CurrentPlayer.GetHand().FindIndex(card => ReferenceEquals(card, playedCard));
-        CurrentPlayer.ApplyDamage(indexOfCardInHand);
-    }
-
+    
     private void HandleEndTurnAction(Player firstPlayer, Player secondPlayer)
     {
         CurrentPlayer = firstPlayer;
         Opponent = secondPlayer;
 
         if (Opponent.HasEmptyArsenal())
-        {
             EndGame(CurrentPlayer);
-        }
+        if (CurrentPlayer.HasEmptyArsenal())
+            EndGame(Opponent);
         TurnOn = false;
         ResetAbilityUsage();
     }
 
     private void ResetAbilityUsage()
     {
-        CurrentPlayer.Superstar.ResetAbilityUsage();
+        CurrentPlayer.Superstar.MarkAbilityAsUnused();
     }
 
     private void HandleGiveUpAction(Player opponentPlayer)

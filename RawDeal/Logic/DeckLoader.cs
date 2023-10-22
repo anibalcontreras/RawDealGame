@@ -1,5 +1,5 @@
 using RawDeal.Models;
-
+using RawDealView;
 namespace RawDeal.Logic;
 public static class DeckLoader
 {
@@ -7,10 +7,10 @@ public static class DeckLoader
     private static readonly Dictionary<string, Superstar> allAvailableSuperstars = new Dictionary<string, Superstar>();
     private const string SuperstarCardSuffix = " (Superstar Card)";
 
-    public static void InitializeDeckLoader()
+    public static void InitializeDeckLoader(View view)
     {
         LoadAllCards();
-        LoadAllSuperstars();
+        LoadAllSuperstars(view);
     }
 
     public static Deck LoadDeck(string path)
@@ -31,19 +31,18 @@ public static class DeckLoader
         }
     }
 
-    private static void LoadAllSuperstars()
+    private static void LoadAllSuperstars(View view)
     {
         List<SuperstarData> superstarsData = SuperstarLoader.LoadSuperstarsFromJson();
         foreach (SuperstarData superstarData in superstarsData)
         {
-            Superstar superstar = SuperstarFactory.CreateSuperstar(superstarData.Logo);
+            Superstar superstar = SuperstarFactory.CreateSuperstar(superstarData.Logo, view);
             superstar.Name = superstarData.Name;
             superstar.Logo = superstarData.Logo;
             superstar.HandSize = superstarData.HandSize;
             superstar.SuperstarValue = superstarData.SuperstarValue;
             superstar.SuperstarAbility = superstarData.SuperstarAbility;
             superstar.SuperstarCard = superstarData.SuperstarCard;
-            
             allAvailableSuperstars[superstar.Name] = superstar;
         }
     }
@@ -70,7 +69,6 @@ public static class DeckLoader
         Superstar superstar = GetSuperstarByName(lines[0].Replace(SuperstarCardSuffix, ""));
         var deck = new Deck(superstar)
         {
-            // Superstar = GetSuperstarByName(lines[0].Replace(SuperstarCardSuffix, "")),
             Cards = new List<Card>()
         };
 
@@ -93,13 +91,7 @@ public static class DeckLoader
         foreach (var cardTitle in cardLines)
         {
             if (allAvailableCards.TryGetValue(cardTitle, out var card))
-            {
                 deck.Cards.Add(card.Clone());
-            }
-            else
-            {
-                Console.WriteLine($"Advertencia: La card '{cardTitle}' no se encontró en las cartas disponibles.");
-            }
         }
     }
 }

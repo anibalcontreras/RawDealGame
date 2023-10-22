@@ -31,14 +31,14 @@ public class Game
     {
         while (true)
         {
-            if (!PlayTurnAndCheckGameStatus(firstPlayer, secondPlayer))
+            if (!CheckGameStatus(firstPlayer, secondPlayer))
                 break;
 
-            if (!PlayTurnAndCheckGameStatus(secondPlayer, firstPlayer))
+            if (!CheckGameStatus(secondPlayer, firstPlayer))
                 break;
         }
     }
-    private bool PlayTurnAndCheckGameStatus(Player currentPlayer, Player opponentPlayer)
+    private bool CheckGameStatus(Player currentPlayer, Player opponentPlayer)
     {
         return _playerTurn.PlayTurn(currentPlayer, opponentPlayer);
     }

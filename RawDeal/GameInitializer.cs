@@ -2,6 +2,7 @@ namespace RawDeal;
 using RawDealView;
 using RawDeal.Logic;
 using RawDeal.Models;
+using RawDealView;
 
 public class GameInitializationResult
 {
@@ -25,13 +26,13 @@ public class GameInitializer
     {
         GameInitializationResult result = new GameInitializationResult();
 
-        DeckLoader.InitializeDeckLoader();
+        DeckLoader.InitializeDeckLoader(_view);
 
-        Deck? firstDeck = InitializeDeck();
+        Deck? firstDeck = InitializeDeck(_view);
         if (firstDeck == null)
             return result;
 
-        Deck? secondDeck = InitializeDeck();
+        Deck? secondDeck = InitializeDeck(_view);
         if (secondDeck == null)
             return result;
 
@@ -56,17 +57,17 @@ public class GameInitializer
     }
 
 
-    private Deck GetAndValidateDeck()
+    private Deck GetAndValidateDeck(View view)
     {
-        Dictionary<string, Superstar> allAvailableSuperstars = SuperstarLoader.LoadSuperstarsIntoDictionary();
+        Dictionary<string, Superstar> allAvailableSuperstars = SuperstarLoader.LoadSuperstarsIntoDictionary(view);
         string deckPath = _view.AskUserToSelectDeck(_deckFolder);
         Deck deck = DeckLoader.LoadDeck(deckPath);
         return DeckValidator.IsValidDeck(deck, allAvailableSuperstars).IsValid ? deck : null;
     }
 
-    private Deck? InitializeDeck()
+    private Deck? InitializeDeck(View view)
     {
-        Deck? deck = GetAndValidateDeck();
+        Deck? deck = GetAndValidateDeck(view);
         if (deck == null)
         {
             _view.SayThatDeckIsInvalid();

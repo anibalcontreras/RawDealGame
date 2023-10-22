@@ -1,5 +1,6 @@
 using RawDeal.Models;
 using System.Text.Json;
+using RawDealView;
 
 namespace RawDeal.Logic;
 public class JsonLoader<T>
@@ -25,20 +26,17 @@ public class JsonLoader<T>
 public static class SuperstarLoader
 {
     private static JsonLoader<SuperstarData> _jsonLoader = new JsonLoader<SuperstarData>("data/superstar.json");
-
     public static List<SuperstarData> LoadSuperstarsFromJson()
     {
         return _jsonLoader.LoadFromJson();
     }
-
-    public static Dictionary<string, Superstar> LoadSuperstarsIntoDictionary()
+    public static Dictionary<string, Superstar> LoadSuperstarsIntoDictionary(View view)
     {
         List<SuperstarData> superstarsList = LoadSuperstarsFromJson();
         Dictionary<string, Superstar> superstarsDict = new Dictionary<string, Superstar>();
-
         foreach (var superstarData in superstarsList)
         {
-            var superstar = SuperstarFactory.CreateSuperstar(superstarData.Logo);
+            var superstar = SuperstarFactory.CreateSuperstar(superstarData.Logo, view);
             superstar.Name = superstarData.Name;
             superstar.Logo = superstarData.Logo;
             superstar.HandSize = superstarData.HandSize;
@@ -55,7 +53,6 @@ public static class SuperstarLoader
 public static class CardLoader
 {
     private static JsonLoader<Card> _jsonLoader = new JsonLoader<Card>("data/cards.json");
-
     public static List<Card> LoadCardsFromJson()
     {
         return _jsonLoader.LoadFromJson();
