@@ -1,3 +1,4 @@
+using RawDeal.Interfaces;
 using RawDeal.Models.Effects;
 using RawDealView;
 using RawDealView.Options;
@@ -5,17 +6,37 @@ using RawDeal.Models;
 using RawDeal.Models.Reversals;
 
 namespace RawDeal;
-public class PlayerTurn
+public class PlayerTurn : IObserver
 {
+    public void Update(string message)
+    {
+        if (message == "CardReversedByDeck")
+        {
+            Console.WriteLine("NOS LLEGO EL MENSAJE DE QUE SE REVERSÓ UNA CARTA DESDE EL MAZO");
+            continueTurn = false;
+            ResetAbilityUsage();
+        }
+        else if (message == "CardReversedByHand")
+        {
+            Console.WriteLine("NOS LLEGO EL MENSAJE DE QUE SE REVERSÓ UNA CARTA DESDE LA MANO");
+            continueTurn = false;
+            ResetAbilityUsage();
+        }
+    }
+
+    private Card _selectedCard;
+    private bool continueTurn = true;
     private readonly View _view;
     private Player CurrentPlayer { get; set; }
     private Player Opponent { get; set; }
     private List<Card> PlayableCards { get; set; }
     private int SelectedPlayIndex { get; set; }
+    private int SelectedReversalIndex { get; set; }
     private bool GameOn { get; set; } = true;
     private bool TurnOn { get; set; } = true;
     private EffectCatalog _effectCatalog;
     // private ReversalCatalog _reversalCatalog;
+
     public PlayerTurn(View view)
     {
         _view = view;
@@ -34,19 +55,13 @@ public class PlayerTurn
         player.DrawCard();
         _view.SayThatATurnBegins(player.Superstar.Name);
     }
-
-    private void StartTurnByReversalByDeck(Player player)
-    {
-        _view.SayThatATurnBegins(player.Superstar.Name);
-    }
-
     private void ExecutePlayerActions(Player firstPlayer, Player secondPlayer)
     {
-        bool continueTurn = true;
         while (continueTurn)
         {
             continueTurn = HandleTurnActions(firstPlayer, secondPlayer);
         }
+        continueTurn = true;
     }
     private NextPlay DetermineIfSuperstarCanActivateHisAbility(Player player)
     {
@@ -90,7 +105,7 @@ public class PlayerTurn
                 break;
             case NextPlay.PlayCard:
                 HandlePlayCardAction(firstPlayer, secondPlayer);
-                if (!GameOn) return false;
+                if (!GameOn || !continueTurn) return false;
                 break;
             case NextPlay.UseAbility:
                 firstPlayer.Superstar.ActivateAbility(firstPlayer, secondPlayer, AbilityActivation.InMenu);
@@ -102,44 +117,125 @@ public class PlayerTurn
                 HandleGiveUpAction(secondPlayer);
                 return false;
         }
-        return true;
+        return continueTurn;
     }
     
     private void HandlePlayCardAction(Player firstPlayer, Player secondPlayer)
     {
+        InitializePlayers(firstPlayer, secondPlayer);
+        if (AttemptToPlayCard())
+        {
+            ExecuteCardPlay(GetPlayedCard(), GetPlayedAs());
+        }
+    }
+
+    private void InitializePlayers(Player firstPlayer, Player secondPlayer)
+    {
         CurrentPlayer = firstPlayer;
         Opponent = secondPlayer;
         PlayableCards = Play.GetPlayableCards(CurrentPlayer.GetHand(), CurrentPlayer.Fortitude);
-        List<string> formattedPlayableCards = Play.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude);
-        SelectedPlayIndex = _view.AskUserToSelectAPlay(formattedPlayableCards);
-        if (SelectedPlayIndex == -1)
-            return;
-        ExecuteCardPlay();
     }
-    private void ApplyCardSpecialEffect()
+
+    private bool AttemptToPlayCard()
+    {
+        SelectedPlayIndex = _view.AskUserToSelectAPlay(Play.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude));
+        return SelectedPlayIndex != -1;
+    }
+
+    private Card GetPlayedCard()
+    {
+        return GetSelectedPlay().CardInfo as Card;
+    }
+
+    private string GetPlayedAs()
+    {
+        return GetSelectedPlay().PlayedAs;
+    }
+
+    private Play GetSelectedPlay()
     {
         List<Play> playablePlays = Play.GetPlayablePlays(CurrentPlayer.GetHand(), CurrentPlayer.Fortitude);
-        Play selectedPlay = playablePlays[SelectedPlayIndex];
-        Card playedCard = selectedPlay.CardInfo as Card;
-        Effect cardEffect = _effectCatalog.GetEffectBy(playedCard.Title, selectedPlay.PlayedAs);
-        bool hasLost = cardEffect.Apply(CurrentPlayer, Opponent, playedCard);
+        return playablePlays[SelectedPlayIndex];
+    }
+
+    private void ApplyCardSpecialEffect()
+    {
+        Effect cardEffect = _effectCatalog.GetEffectBy(GetPlayedCard().Title, GetPlayedAs());
+        bool hasLost = cardEffect.Apply(CurrentPlayer, Opponent, GetPlayedCard());
         if (hasLost)
             EndGame(CurrentPlayer);
     }
 
-    private void ExecuteCardPlay()
+    private void ExecuteCardPlay(Card playedCard, string playedAs)
     {
-        AnnounceCardPlay();
-        ApplyCardSpecialEffect();
+        AnnounceAttemptToPlayCard();
+        if (CanBeReversed(playedCard, playedAs))
+        {
+            if (UserChoseNotToReverse())
+            {
+                AnnounceSuccessfulCardPlay();
+                ApplyCardSpecialEffect();
+            }
+            else
+            {
+                HandleReversal(playedCard, playedAs);
+            }
+        }
+        else
+        {
+            AnnounceSuccessfulCardPlay();
+            ApplyCardSpecialEffect();   
+        }
     }
 
-    private void AnnounceCardPlay()
+    private bool UserChoseNotToReverse()
+    {
+        return SelectedReversalIndex == -1;
+    }
+
+    private void HandleReversal(Card playedCard, string playedAs)
+    {
+        Play selectedReversal = GetSelectedReversal(playedCard, playedAs);
+        Card playedReversal = selectedReversal.CardInfo as Card;
+        CancelPlayerTurn(GetFormattedReversal(playedCard, playedAs), playedReversal);
+    }
+
+    private Play GetSelectedReversal(Card playedCard, string playedAs)
+    {
+        List<Play> playableReversals = Play.GetPlayablePlaysReversals(Opponent.GetHand(), playedCard, Opponent.Fortitude, playedAs);
+        return playableReversals[SelectedReversalIndex];
+    }
+
+    private string GetFormattedReversal(Card playedCard, string playedAs)
+    {
+        return Play.GetFormattedPlayableReversals(Opponent.GetHand(), playedCard, Opponent.Fortitude, playedAs)[SelectedReversalIndex];
+    }
+
+    private void CancelPlayerTurn(string playedReversal, Card playedReversalCard)
+    {
+        Console.WriteLine("Reversamos carta desde la mano");
+        _view.SayThatPlayerReversedTheCard(Opponent.Superstar.Name, playedReversal);
+        Update("CardReversedByHand");
+        Opponent.OpponentUseReversal(playedReversalCard);
+        CurrentPlayer.OpponentUseReversal(playedReversalCard);
+    }
+
+    private void AnnounceAttemptToPlayCard()
     {
         string selectedPlay = Play.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude)[SelectedPlayIndex];
         _view.SayThatPlayerIsTryingToPlayThisCard(CurrentPlayer.Superstar.Name, selectedPlay);
+    }
+
+    private void AnnounceSuccessfulCardPlay()
+    {
         _view.SayThatPlayerSuccessfullyPlayedACard();
     }
-    
+
+    private bool CanBeReversed(Card playedCard, string playedAs)
+    {
+        List<string> possibleReversals = Play.GetFormattedPlayableReversals(Opponent.GetHand(), playedCard, Opponent.Fortitude, playedAs);
+        return possibleReversals.Count > 0;
+    }
     private void HandleEndTurnAction(Player firstPlayer, Player secondPlayer)
     {
         CurrentPlayer = firstPlayer;

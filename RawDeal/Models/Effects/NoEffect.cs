@@ -6,15 +6,13 @@ public class NoEffect : Effect
     public NoEffect(View view) : base(view)
     {
     }
-    public override bool Apply(Player player, Player opponent, Card card)
+    public override bool Apply(Player player, Player opponent, Card playedCard)
     {
-        // Lógica de daño estándar
-        int damage = CalculateCardDamage(card);
-        // Console.WriteLine("EL daño es" + damage);
+        int damage = CalculateCardDamage(playedCard);
         AnnounceDamageToOpponent(damage, opponent);
-        bool hasLost = ApplyCardDamageToOpponent(damage, opponent);
+        bool hasLost = ApplyCardDamageToOpponent(damage, opponent, playedCard);
         if (!hasLost)
-            ApplyCardEffect(player, card);
+            ApplyCardEffect(player, playedCard);
         return hasLost;
     }
 
@@ -22,20 +20,22 @@ public class NoEffect : Effect
     {
         return int.Parse(card.Damage);
     }
-
+    
     private void AnnounceDamageToOpponent(int cardDamage, Player opponent)
-    {
-        int actualDamage = (opponent.Superstar.Logo == "Mankind") ? cardDamage - 1 : cardDamage;
+    { 
+        int actualDamage = opponent.Superstar.CalculateDamage(cardDamage);
         if (actualDamage > 0)
+        {
             _view.SayThatSuperstarWillTakeSomeDamage(opponent.Superstar.Name, actualDamage);
+        }
     }
-    private bool ApplyCardDamageToOpponent(int cardDamage, Player opponent)
+    
+    private bool ApplyCardDamageToOpponent(int cardDamage, Player opponent, Card playedCard)
     {
-        if (opponent.Superstar.Logo == "Mankind")
-            return opponent.ReceiveDamage(cardDamage - 1);
-        return opponent.ReceiveDamage(cardDamage);
+        int actualDamage = opponent.Superstar.CalculateDamage(cardDamage);
+        return opponent.ReceiveDamage(actualDamage, playedCard);
     }
-
+    
     private void ApplyCardEffect(Player player, Card playedCard)
     {
         int indexOfCardInHand = player.GetHand().FindIndex(card => ReferenceEquals(card, playedCard));

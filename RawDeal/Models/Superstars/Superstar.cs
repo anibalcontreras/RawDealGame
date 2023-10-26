@@ -39,6 +39,12 @@ public abstract class Superstar
     {
         HasUsedAbility = false;
     }
+    
+    public virtual int CalculateDamage(int originalDamage)
+    {
+        return originalDamage;
+    }
+
 }
 public static class SuperstarFactory
 {

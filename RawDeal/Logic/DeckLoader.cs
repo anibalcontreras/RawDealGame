@@ -94,4 +94,13 @@ public static class DeckLoader
                 deck.Cards.Add(card.Clone());
         }
     }
+
+    public static Card GetCardByName(string cardTitle)
+    {
+        if (allAvailableCards.TryGetValue(cardTitle, out var card))
+        {
+            return card;
+        }
+        return null;
+    }
 }

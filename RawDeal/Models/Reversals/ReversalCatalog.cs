@@ -1,6 +1,7 @@
 using RawDealView;
-namespace RawDeal.Models.Reversals;
+using RawDeal.Logic; // Asegúrate de agregar este using para acceder a DeckLoader
 
+namespace RawDeal.Models.Reversals;
 public class ReversalCatalog
 {
     private readonly View _view;
@@ -10,8 +11,14 @@ public class ReversalCatalog
     {
         if (_reversals.ContainsKey(cardTitle))
             return _reversals[cardTitle];
+        
+        Card card = DeckLoader.GetCardByName(cardTitle);
+        if (card.Types.Contains("Reversal"))
+        {
+            return new NoEffectReversal(_view, card);
+        }
 
-        return new NoEffectReversal(_view);
+        return null;
     }
 
     public ReversalCatalog(View view)
@@ -22,10 +29,9 @@ public class ReversalCatalog
 
     private void InitializeReversals()
     {
-        // Aquí puedes agregar los reversals específicos
-        _reversals["Step Aside"] = new NoEffectReversal(_view);
-        _reversals["Escape Move"] = new NoEffectReversal(_view);
-        _reversals["Break the Hold"] = new NoEffectReversal(_view);
-        _reversals["No Chance in Hell"] = new NoEffectReversal(_view);
+        _reversals["Step Aside"] = GetReversalBy("Step Aside");
+        _reversals["Escape Move"] = GetReversalBy("Escape Move");
+        _reversals["Break the Hold"] = GetReversalBy("Break the Hold");
+        _reversals["No Chance in Hell"] = GetReversalBy("No Chance in Hell");
     }
 }

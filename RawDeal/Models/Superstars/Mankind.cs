@@ -27,4 +27,10 @@ public class Mankind : Superstar
          } else
              player.DrawCard();
      }
+     
+     public override int CalculateDamage(int originalDamage)
+     {
+         return originalDamage - 1;
+     }
+
 }

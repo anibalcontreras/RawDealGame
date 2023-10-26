@@ -31,7 +31,6 @@ public class TheRock : Superstar
 
     private bool WantsToUseAbility(Player player)
     {
-        Console.Write("ACÁ BUSCANDO SI QUIERE ACTIVAR SU HABILIDAD");
         bool wantsToUseAbility = _view.DoesPlayerWantToUseHisAbility(player.Superstar.Name);
         if (wantsToUseAbility)
         {

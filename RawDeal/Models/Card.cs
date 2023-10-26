@@ -1,5 +1,4 @@
 using RawDealView.Formatters;
-// using RawDeal.Models.Effects;
 namespace RawDeal.Models;
 public class Card : IViewableCardInfo
 {
@@ -10,6 +9,7 @@ public class Card : IViewableCardInfo
     public string Damage { get; set; } = string.Empty;
     public string StunValue { get; set; } = string.Empty;
     public string CardEffect { get; set; } = string.Empty;
+    
     public string GetTypesAsString()
     {
         return string.Join(", ", Types.Select(type => type.ToUpper()));
@@ -18,15 +18,6 @@ public class Card : IViewableCardInfo
     {
         return Formatter.CardToString(this);
     }
-    // public int GetFortitude()
-    // {
-    //     return int.Parse(Fortitude);
-    // }
-
-    // public Card(string title)
-    // {
-    //     Title = title;
-    // }
     public Card Clone()
     {
         return new Card
