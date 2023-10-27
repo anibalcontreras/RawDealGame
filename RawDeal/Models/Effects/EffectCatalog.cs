@@ -1,6 +1,5 @@
 using RawDealView;
 namespace RawDeal.Models.Effects;
-
 public class EffectCatalog
 {
     private readonly View _view;

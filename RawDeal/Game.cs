@@ -29,8 +29,6 @@ public class Game
     }
     private void PlayGame(Player firstPlayer, Player secondPlayer)
     {
-        firstPlayer.RegisterObserver(_playerTurn);
-        secondPlayer.RegisterObserver(_playerTurn);
         while (true)
         {
             if (!CheckGameStatus(firstPlayer, secondPlayer))

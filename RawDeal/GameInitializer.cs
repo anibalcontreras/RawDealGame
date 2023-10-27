@@ -1,8 +1,7 @@
 namespace RawDeal;
 using RawDealView;
-using RawDeal.Logic;
-using RawDeal.Models;
-using RawDealView;
+using Logic;
+using Models;
 
 public class GameInitializationResult
 {

@@ -4,7 +4,7 @@ namespace RawDeal.Models.Effects;
 public abstract class Effect
 {
     protected readonly View _view;
-    public Effect(View view)
+    protected Effect(View view)
     {
         _view = view;
     }

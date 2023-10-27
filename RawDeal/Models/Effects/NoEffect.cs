@@ -10,7 +10,7 @@ public class NoEffect : Effect
     {
         int damage = CalculateCardDamage(playedCard);
         AnnounceDamageToOpponent(damage, opponent);
-        bool hasLost = ApplyCardDamageToOpponent(damage, opponent, playedCard);
+        bool hasLost = ApplyCardDamageToOpponent(damage, opponent);
         if (!hasLost)
             ApplyCardEffect(player, playedCard);
         return hasLost;
@@ -30,10 +30,10 @@ public class NoEffect : Effect
         }
     }
     
-    private bool ApplyCardDamageToOpponent(int cardDamage, Player opponent, Card playedCard)
+    private bool ApplyCardDamageToOpponent(int cardDamage, Player opponent)
     {
         int actualDamage = opponent.Superstar.CalculateDamage(cardDamage);
-        return opponent.ReceiveDamage(actualDamage, playedCard);
+        return opponent.ReceiveDamage(actualDamage);
     }
     
     private void ApplyCardEffect(Player player, Card playedCard)
