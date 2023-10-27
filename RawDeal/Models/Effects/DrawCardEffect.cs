@@ -7,7 +7,6 @@ public class DrawCardEffect: Effect
     }
     public override bool Apply(Player player, Player opponent, Card card)
     {
-        // _view.SayThatPlayerMustDiscardThisCard(player.Superstar.Name, card.Title);
         player.DiscardCard(card); ;
         player.DrawCard();
         _view.SayThatPlayerDrawCards(player.Superstar.Name, 1);

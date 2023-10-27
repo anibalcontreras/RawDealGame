@@ -1,7 +1,10 @@
-using RawDeal.Models;
+// using RawDeal.Models;
+
+using RawDeal.Models.Reversals;
 using RawDealView;
 using RawDealView.Formatters;
 
+namespace RawDeal.Models;
 public class Player
 {
     private List<Card> Hand { get; } = new List<Card>();
@@ -9,15 +12,15 @@ public class Player
     private List<Card> Ringside { get; } = new List<Card>();
     private List<Card> RingArea { get; } = new List<Card>();
     private readonly View _view;
-    private int _baseFortitude = 0;
-    public int Fortitude => _baseFortitude + RingArea.Sum(card => int.Parse(card.Damage));
+    private readonly int _baseFortitude = 0;
     public Superstar Superstar { get; private set; }
     public Player(Deck deck, View view)
     {
         Superstar = deck.Superstar;
-        Arsenal.AddRange(deck.Cards);
         _view = view;
+        Arsenal.AddRange(deck.Cards);
     }
+    public int Fortitude => _baseFortitude + RingArea.Sum(card => int.Parse(card.Damage));
     public List<Card> GetHand()
     {
         return Hand;
@@ -50,12 +53,10 @@ public class Player
 
     public void DrawCard()
     {
-        if (Arsenal.Any())
-        {
-            Card lastCard = Arsenal.Last();
-            Arsenal.Remove(lastCard);
-            Hand.Add(lastCard);
-        }
+        if (!Arsenal.Any()) return;
+        Card lastCard = Arsenal.Last();
+        Arsenal.Remove(lastCard);
+        Hand.Add(lastCard);
     }
     public bool ReceiveDamage(int damageAmount) => ProcessDamage(damageAmount);
 
@@ -68,6 +69,7 @@ public class Player
             Arsenal.Remove(lastCard);
             Ringside.Add(lastCard);
             _view.ShowCardOverturnByTakingDamage(lastCard.ToString(), i + 1, damageAmount);
+            Console.WriteLine(lastCard.Fortitude);
         }
         return false;
     }
@@ -81,7 +83,6 @@ public class Player
     {
         return !Arsenal.Any();
     }
-
     public void DiscardCard(Card cardToDiscard)
     {
         if (Hand.Contains(cardToDiscard))

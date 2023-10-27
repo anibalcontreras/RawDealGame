@@ -12,7 +12,7 @@ string folder = "07-NoEffectReversals";
 // Cuando aparezca texto rojo el programa entrará en "modo manual"
 int idTest = 1;
 string pathToTest = Path.Combine("data", $"{folder}-Tests", $"{idTest}.txt");
-View view = View.BuildManualTestingView(pathToTest); 
+View view = View.BuildManualTestingView(pathToTest);
 
 // esta vista permite jugar el juego de manera manual
 // View view = View.BuildConsoleView();  

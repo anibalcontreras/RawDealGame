@@ -111,12 +111,12 @@ public class PlayerTurn
     {
         CurrentPlayer = firstPlayer;
         Opponent = secondPlayer;
-        PlayableCards = Play.GetPlayableCards(CurrentPlayer.GetHand(), CurrentPlayer.Fortitude);
+        PlayableCards = PlayUtility.GetPlayableCards(CurrentPlayer.GetHand(), CurrentPlayer.Fortitude);
     }
 
     private bool AttemptToPlayCard()
     {
-        SelectedPlayIndex = _view.AskUserToSelectAPlay(Play.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude));
+        SelectedPlayIndex = _view.AskUserToSelectAPlay(PlayUtility.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude));
         return SelectedPlayIndex != -1;
     }
 
@@ -132,7 +132,7 @@ public class PlayerTurn
 
     private Play GetSelectedPlay()
     {
-        List<Play> playablePlays = Play.GetPlayablePlays(CurrentPlayer.GetHand(), CurrentPlayer.Fortitude);
+        List<Play> playablePlays = PlayUtility.GetPlayablePlays(CurrentPlayer.GetHand(), CurrentPlayer.Fortitude);
         return playablePlays[SelectedPlayIndex];
     }
     
@@ -156,7 +156,8 @@ public class PlayerTurn
 
     private void AnnounceAttemptToPlayCard()
     {
-        string selectedPlay = Play.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude)[SelectedPlayIndex];
+        string selectedPlay = PlayUtility.GetFormattedPlayableCards(PlayableCards,
+            CurrentPlayer.Fortitude)[SelectedPlayIndex];
         _view.SayThatPlayerIsTryingToPlayThisCard(CurrentPlayer.Superstar.Name, selectedPlay);
     }
 

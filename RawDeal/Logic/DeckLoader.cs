@@ -1,4 +1,3 @@
-using RawDeal.Exceptions;
 using RawDeal.Models;
 using RawDealView;
 namespace RawDeal.Logic;
@@ -92,7 +91,10 @@ public static class DeckLoader
         foreach (var cardTitle in cardLines)
         {
             if (allAvailableCards.TryGetValue(cardTitle, out var card))
-                deck.Cards.Add(card.Clone());
+            {
+                Card instantiatedCard = CardFactory.CreateCardFromExisting(card);
+                deck.Cards.Add(instantiatedCard);
+            }
         }
     }
 }

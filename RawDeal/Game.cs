@@ -1,5 +1,5 @@
 using RawDealView;
-
+using RawDeal.Models;
 namespace RawDeal;
 public class Game
 {
