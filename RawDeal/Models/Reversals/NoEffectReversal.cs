@@ -3,19 +3,22 @@ namespace RawDeal.Models.Reversals;
 
 public class NoEffectReversal : Reversal
 {
-    public NoEffectReversal(View view, Card reversalCard) : base(view, reversalCard) { }
-
-    public override bool Apply(Player player, Player opponent, Card playedCard)
+    public NoEffectReversal(View view, Card card) : base(view, card) { }
+    
+    public override bool CanReverseFromDeck(Card playedCard)
     {
-        // Verificar si la carta jugada coincide con los subtipos de la carta de reversión y si el jugador tiene suficiente fortaleza
-        if (Subtypes.Any(subtype => playedCard.Subtypes.Contains(GetReversalTypeFromSubtype(subtype))) && player.Fortitude >= int.Parse(Fortitude))
-        {
-            _view.SayThatCardWasReversedByDeck(player.Superstar.Name);
-            return true;
-        }
-        return false;
+            return _card.Subtypes.Any(subType => playedCard.Subtypes.Contains(GetReversalTypeFromSubtype(subType)));
     }
 
+    public override bool CanReverseFromHand(Card playedCard, Player player)
+    {
+        int playerFortitudeRating = player.Fortitude;
+        if (playerFortitudeRating < int.Parse(_card.Fortitude))
+            return false;
+        
+        return _card.Subtypes.Any(subType => playedCard.Types.Any(type => subType.Contains(GetReversalTypeFromSubtype(type))));
+    }
+    
     private string GetReversalTypeFromSubtype(string subtype)
     {
         switch (subtype)

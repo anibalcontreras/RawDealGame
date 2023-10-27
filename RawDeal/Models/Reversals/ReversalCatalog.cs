@@ -1,5 +1,7 @@
 using RawDealView;
-using RawDeal.Logic; // Asegúrate de agregar este using para acceder a DeckLoader
+using RawDeal.Logic;
+using RawDeal.Models.Effects; // Asegúrate de agregar este using para acceder a DeckLoader
+
 
 namespace RawDeal.Models.Reversals;
 public class ReversalCatalog
@@ -20,10 +22,23 @@ public class ReversalCatalog
 
         return null;
     }
+    // public Reversal GetReversalBy(string cardTitle)
+    // {
+    //     if (_reversals.ContainsKey(cardTitle))
+    //         return _reversals[cardTitle];
+    //
+    //     Card card = DeckLoader.GetCardByName(cardTitle);
+    //     if (card.Types.Contains("Reversal"))
+    //     {
+    //         return new NoEffectReversal(_view, card);
+    //     }
+    //
+    //     throw new ReversalException("The Card is not a reversal");
+    // }
 
-    public ReversalCatalog(View view)
+    public ReversalCatalog()
     {
-        _view = view;
+        // _view = view;
         InitializeReversals();
     }
 

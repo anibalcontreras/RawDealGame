@@ -1,3 +1,4 @@
+using RawDeal.Exceptions;
 using RawDeal.Models;
 using RawDealView;
 namespace RawDeal.Logic;
@@ -101,6 +102,6 @@ public static class DeckLoader
         {
             return card;
         }
-        return null;
+        throw new CardNotFoundException($"Card with title '{cardTitle}' not found.");
     }
 }

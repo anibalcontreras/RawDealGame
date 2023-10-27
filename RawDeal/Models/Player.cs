@@ -1,10 +1,10 @@
+using RawDeal.Exceptions;
 using RawDeal.Interfaces;
 using RawDeal.Models;
 using RawDealView;
 using RawDealView.Formatters;
 using RawDeal.Models.Reversals;
-using RawDeal.Models.Effects;
-using RawDeal.Models.Reversals;
+// using RawDeal.Models.Effects;
 
 public class Player : ISubject
 {
@@ -16,7 +16,7 @@ public class Player : ISubject
     private readonly View _view;
     private int _baseFortitude = 0;
     private ReversalCatalog _reversalCatalog;
-    private EffectCatalog _effectCatalog;
+    // private EffectCatalog _effectCatalog;
     public int Fortitude => _baseFortitude + RingArea.Sum(card => int.Parse(card.Damage));
     public Superstar Superstar { get; private set; }
     public Player(Deck deck, View view)
@@ -24,8 +24,8 @@ public class Player : ISubject
         Superstar = deck.Superstar;
         Arsenal.AddRange(deck.Cards);
         _view = view;
-        _reversalCatalog = new ReversalCatalog(_view);
-        _effectCatalog = new EffectCatalog(_view);
+        _reversalCatalog = new ReversalCatalog();
+        // _effectCatalog = new EffectCatalog(_view);
     }
     public void RegisterObserver(IObserver observer)
     {
@@ -91,23 +91,31 @@ public class Player : ISubject
         for (int i = 0; i < damageAmount; i++)
         {
             if (!Arsenal.Any()) return true;
-
             Card lastCard = Arsenal.Last();
             Arsenal.Remove(lastCard);
             Ringside.Add(lastCard);
             _view.ShowCardOverturnByTakingDamage(lastCard.ToString(), i + 1, damageAmount);
-
-            if (playedCard == null) continue;
-
-            Reversal reversalCard = _reversalCatalog.GetReversalBy(lastCard.Title);
-            if (reversalCard != null && reversalCard.Apply(this, this, playedCard))
+            try
             {
-                Console.WriteLine("Reversamos carta desde el mazo");
-                NotifyObservers("CardReversedByDeck");
-                return false; // Damage stopped and opponent's turn ended
+                IsPossibleToUseReversal(lastCard);
+                {
+                    Reversal reversalCard = _reversalCatalog.GetReversalBy(lastCard.Title);
+                    Console.WriteLine("La reversal card es " + reversalCard.ToString());
+                    Console.WriteLine("La reversal card tiene un subtype" + reversalCard.GetSubtypesAsString());
+                    if (reversalCard.CanReverseFromDeck(playedCard))
+                    {
+                        Console.WriteLine("Reversamos carta desde el mazo");
+                        NotifyObservers("CardReversedByDeck");
+                        return false; // Damage stopped and opponent's turn ended
+                    }
+                }
+            }
+            catch (ReversalException ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
-        return false; // Player has not lost
+        return false;
     }
     public void ApplyDamage(int cardIndex)
     {
@@ -130,14 +138,33 @@ public class Player : ISubject
         }
     }
     
-    public void OpponentUseReversal(Card cardToUse)
+        
+    // public void AnnounceDamageToOpponent(int cardDamage, Player opponent)
+    // { 
+    //     int actualDamage = opponent.Superstar.CalculateDamage(cardDamage);
+    //     if (actualDamage > 0)
+    //     {
+    //         _view.SayThatSuperstarWillTakeSomeDamage(opponent.Superstar.Name, actualDamage);
+    //     }
+    // }
+    //
+    
+    private bool IsPossibleToUseReversal(Card lastCard)
     {
-        if (Hand.Contains(cardToUse))
-        {
-            Console.WriteLine("Agregamos al ringside el reversal a usar");
-            Ringside.Add(cardToUse);
-            Hand.Remove(cardToUse);
-            // _view.SayThatPlayerMustDiscardThisCard(Superstar.Name, CardToUse.Title);
-        }
+        Reversal potentialReversal = _reversalCatalog.GetReversalBy(lastCard.Title);
+        if (potentialReversal == null)
+            throw new ReversalException("The card is not a reversal.");
+        return true;
     }
+    
+    // public void OpponentUseReversal(Card cardToUse)
+    // {
+    //     if (Hand.Contains(cardToUse))
+    //     {
+    //         Console.WriteLine("Agregamos al ringside el reversal a usar");
+    //         Ringside.Add(cardToUse);
+    //         Hand.Remove(cardToUse);
+    //         // _view.SayThatPlayerMustDiscardThisCard(Superstar.Name, CardToUse.Title);
+    //     }
+    // }
 }

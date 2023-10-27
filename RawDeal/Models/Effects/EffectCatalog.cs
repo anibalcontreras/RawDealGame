@@ -29,10 +29,6 @@ public class EffectCatalog
         _effects["Chop"] = new DrawCardEffect(_view);
         _effects["Arm Bar Takedown"] = new DrawCardEffect(_view);
         _effects["Collar & Elbow Lockup"] = new DrawCardEffect(_view);
-        _effects["Step Aside"] = new NoEffectReversal(_view);
-        _effects["Escape Move"] = new NoEffectReversal(_view);
-        _effects["Break the Hold"] = new NoEffectReversal(_view);
-        _effects["No Chance in Hell"] = new NoEffectReversal(_view);
     }
     private bool IsHybridCard(string cardTitle)
     {

@@ -1,4 +1,6 @@
+using RawDeal.Exceptions;
 using RawDeal.Models.Reversals;
+using RawDealView;
 using RawDealView.Formatters;
 
 namespace RawDeal.Models;
@@ -22,8 +24,6 @@ public class Play : IViewablePlayInfo
     private bool IsManeuverOrAction => _cardInfo.Types.Contains("Maneuver") || _cardInfo.Types.Contains("Action");
     private int CardFortitude => int.Parse(_cardInfo.Fortitude);
 
-    // public int GetCardDamageAsInt() => int.Parse(_cardInfo.Damage);
-
     public static List<string> GetFormattedPlayableCards(List<Card> cards, int playerFortitude) =>
         GetPlayablePlays(cards, playerFortitude).Select(Formatter.PlayToString).ToList();
 
@@ -36,86 +36,31 @@ public class Play : IViewablePlayInfo
     public static List<Card> GetPlayableCards(List<Card> cards, int playerFortitude) =>
         cards.Where(card => GetPlayablePlays(new List<Card> { card }, playerFortitude).Any()).ToList();
 
-    public static List<string> GetFormattedPlayableReversals(List<Card> opponentHand, Card playedCard, int opponentFortitude, string playedAs) =>
-        GetPlayablePlaysReversals(opponentHand, playedCard, opponentFortitude, playedAs).Select(Formatter.PlayToString).ToList();
+    public static List<Card> GetPlayableReversals(List<Card> cards, Card playedCard, Player player) =>
+        cards.Where(card => CanReverseFromHand(card, playedCard, player)).ToList();
 
-    public static List<Play> GetPlayablePlaysReversals(List<Card> opponentHand, Card playedCard, int opponentFortitude, string playedAs)
+    public static bool CanReverseFromHand(Card reversalCard, Card playedCard, Player player)
     {
-        return GetPlayableReversals(opponentHand, playedCard, opponentFortitude, playedAs).Select(card => new Play(card, "REVERSAL")).ToList();
-    }
-    
-    // private static List<Card> GetPlayableReversals(List<Card> opponentHand, Card playedCard, Player opponent)
-    // {
-    //     return opponentHand.Where(reversalCard => 
-    //     {
-    //         Reversal reversal = _reversalCatalog.GetReversalBy(reversalCard.Title);
-    //         return reversal != null && reversal.CanReverse(playedCard, opponent);
-    //     }).ToList();
-    // }
-    private static List<Card> GetPlayableReversals(List<Card> opponentHand, Card playedCard, int opponentFortitude, string playedAs) =>
-        opponentHand.Where(reversalCard => CanReverse(playedCard, reversalCard, opponentFortitude, playedAs)).ToList();
-    private static bool CanReverse(Card playedCard, Card reversalCard, int opponentFortitude, string playedAs)
-    {
-        bool canReverse = HasSufficientFortitude(reversalCard, opponentFortitude) &&
-                          IsReversalCard(reversalCard) &&
-                          CardPlayedAsIntendedType(playedCard, playedAs) &&
-                          ReversalEffectMatchesPlayedCard(playedCard, reversalCard, playedAs);
-        return canReverse;
-    }
-    
-    private static bool IsReversalCard(Card reversalCard)
-    {
-        bool isReversal = reversalCard.Types.Contains("Reversal");
-        return isReversal;
-    }
-    
-    private static bool HasSufficientFortitude(Card reversalCard, int opponentFortitude)
-    {
-        bool hasFortitude = opponentFortitude >= int.Parse(reversalCard.Fortitude);
-        return hasFortitude;
-    }
-    
-    private static bool CardPlayedAsIntendedType(Card playedCard, string playedAs)
-    {
-        bool isPlayedAsIntended = playedCard.Types.Any(type => string.Equals(type, playedAs, StringComparison.OrdinalIgnoreCase));
-        return isPlayedAsIntended;
-    }
-    
-    
-    private static bool ReversalEffectMatchesPlayedCard(Card playedCard, Card reversalCard, string playedAs)
-    {
-        string playedCardTypeFromReversalSubtype = GetReversalTypeFromSubtype(reversalCard.Subtypes[0]);
-        bool matches = playedCard.Subtypes.Any(subtype => String.Equals(subtype, playedCardTypeFromReversalSubtype, StringComparison.OrdinalIgnoreCase));
-        
-        if (String.Equals(playedAs, "ACTION", StringComparison.OrdinalIgnoreCase) && reversalCard.Subtypes.Contains("ReversalAction"))
+        Console.WriteLine("Llegamos a CanReverseFromHand");
+        if (_reversalCatalog == null)
         {
-            matches = true;
+            return false;
         }
-        
-        else if (!String.Equals(playedAs, "ACTION", StringComparison.OrdinalIgnoreCase) && reversalCard.Subtypes.Contains("ReversalAction"))
-        {
-            matches = false;
-        }
-        
-        return matches;
+        Reversal potentialReversal = _reversalCatalog.GetReversalBy(reversalCard.Title);
+        Console.WriteLine("El potential reversal es " + potentialReversal.ToString());
+        return potentialReversal.CanReverseFromHand(playedCard, player);
     }
     
-    private static string GetReversalTypeFromSubtype(string subtype)
+
+    public static List<string> GetFormattedPlayableReversals(List<Card> cards, Card playedCard, Player player)
     {
-        switch (subtype)
-        {
-            case "ReversalGrapple":
-                return "Grapple";
-            case "ReversalStrike":
-                return "Strike";
-            case "ReversalSubmission":
-                return "Submission";
-            case "ReversalAction":
-                return "Action";
-            default:
-                return "";
-        }
+        List<Play> playableReversalPlays = ConvertCardsToReversalPlays(GetPlayableReversals(cards, playedCard, player));
+        return playableReversalPlays.Select(Formatter.PlayToString).ToList();
     }
+    
+    public static List<Play> ConvertCardsToReversalPlays(List<Card> cards) =>
+        cards.SelectMany(DivideCardByTypes).ToList();
+    
     private static List<Play> DivideCardByTypes(Card card)
     {
         List<Play> dividedPlays = new List<Play>();
