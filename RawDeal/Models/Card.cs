@@ -18,13 +18,13 @@ public class Card : IViewableCardInfo
     {
         return Formatter.CardToString(this);
     }
-    public Card Clone()
+    public virtual Card Clone()
     {
         return new Card
         {
             Title = Title,
-            Types = Types,
-            Subtypes = Subtypes,
+            Types = new List<string>(Types),
+            Subtypes = new List<string>(Subtypes),
             Fortitude = Fortitude,
             Damage = Damage,
             StunValue = StunValue,

@@ -116,7 +116,9 @@ public class PlayerTurn
 
     private bool AttemptToPlayCard()
     {
-        SelectedPlayIndex = _view.AskUserToSelectAPlay(PlayUtility.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude));
+        List<string> formatPlayableCards = PlayUtility.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude);
+        
+        SelectedPlayIndex = _view.AskUserToSelectAPlay(formatPlayableCards);
         return SelectedPlayIndex != -1;
     }
 

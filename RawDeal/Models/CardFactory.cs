@@ -27,6 +27,7 @@ public static class CardFactory
 
     public static Card CreateCardFromExisting(Card existingCard)
     {
+        return existingCard.Clone();
         // return CreateCard(
         //     existingCard.Title,
         //     existingCard.Types,
@@ -36,15 +37,15 @@ public static class CardFactory
         //     existingCard.StunValue,
         //     existingCard.CardEffect
         // );
-        return new Card
-        {
-            Title = existingCard.Title,
-            Types = existingCard.Types,
-            Subtypes = existingCard.Subtypes,
-            Fortitude = existingCard.Fortitude,
-            Damage = existingCard.Damage,
-            StunValue = existingCard.StunValue,
-            CardEffect = existingCard.CardEffect
-        };
+        // return new Card
+        // {
+        //     Title = existingCard.Title,
+        //     Types = existingCard.Types,
+        //     Subtypes = existingCard.Subtypes,
+        //     Fortitude = existingCard.Fortitude,
+        //     Damage = existingCard.Damage,
+        //     StunValue = existingCard.StunValue,
+        //     CardEffect = existingCard.CardEffect
+        // };
     }
 }

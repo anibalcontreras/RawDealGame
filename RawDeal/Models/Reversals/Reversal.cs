@@ -2,20 +2,56 @@ namespace RawDeal.Models.Reversals;
 
 public class Reversal : Card
 {
-    public virtual bool CanReverse(Card cardToReverse)
+    public override Card Clone()
     {
-        // Lógica específica de reversión
+        return new Reversal
+        {
+            Title = Title,
+            Types = new List<string>(Types),
+            Subtypes = new List<string>(Subtypes),
+            Fortitude = Fortitude,
+            Damage = Damage,
+            StunValue = StunValue,
+            CardEffect = CardEffect
+        };
+    }
+    public virtual bool CardCanReverseFromDeck(Card playedCard, Card cardToReverse, int playerFortitude)
+    {
+        if (IsMatchingSubtype(playedCard, cardToReverse) && IsFortitudeSufficient(playerFortitude, cardToReverse))
+        {
+            return true;
+        }
         return false;
     }
-    public virtual void ApplyReversalEffect(Player player, Player opponent)
+
+    private bool IsMatchingSubtype(Card playedCard, Card cardToReverse)
     {
-        // Lógica para aplicar el efecto de reversión
+        string playedCardSubtype = playedCard.Subtypes.FirstOrDefault(); // Asumiendo que hay un solo subtype
+        string reversalSubtype = TransformReversalSubtype(cardToReverse.Subtypes.FirstOrDefault());
+
+        return playedCardSubtype == reversalSubtype;
     }
-    
-    public virtual bool CanReverseFromDeck(Card cardToReverse, int playerFortitude)
+
+    private string TransformReversalSubtype(string reversalSubtype)
     {
-        // Lógica específica de reversión
-        int reversalFortitude = int.Parse(Fortitude);
-        return false;
+        switch (reversalSubtype)
+        {
+            case "ReversalStrike":
+                return "Strike";
+            case "ReversalGrapple":
+                return "Grapple";
+            case "ReversalSubmission":
+                return "Submission";
+            // ... Agrega más casos según sea necesario
+            default:
+                return reversalSubtype;
+        }
     }
+
+    private bool IsFortitudeSufficient(int playerFortitude, Card cardToReverse)
+    {
+        int reversalFortitude = int.Parse(cardToReverse.Fortitude.Replace("F", ""));
+        return playerFortitude >= reversalFortitude;
+    }
+
 }

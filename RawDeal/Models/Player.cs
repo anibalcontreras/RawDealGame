@@ -1,5 +1,3 @@
-// using RawDeal.Models;
-
 using RawDeal.Models.Reversals;
 using RawDealView;
 using RawDealView.Formatters;
@@ -13,6 +11,7 @@ public class Player
     private List<Card> RingArea { get; } = new List<Card>();
     private readonly View _view;
     private readonly int _baseFortitude = 0;
+    
     public Superstar Superstar { get; private set; }
     public Player(Deck deck, View view)
     {
@@ -58,9 +57,9 @@ public class Player
         Arsenal.Remove(lastCard);
         Hand.Add(lastCard);
     }
-    public bool ReceiveDamage(int damageAmount) => ProcessDamage(damageAmount);
+    public bool ReceiveDamage(int damageAmount, Card playedCard) => ProcessDamage(damageAmount, playedCard);
 
-    private bool ProcessDamage(int damageAmount)
+    private bool ProcessDamage(int damageAmount, Card playedCard)
     {
         for (int i = 0; i < damageAmount; i++)
         {
@@ -69,7 +68,7 @@ public class Player
             Arsenal.Remove(lastCard);
             Ringside.Add(lastCard);
             _view.ShowCardOverturnByTakingDamage(lastCard.ToString(), i + 1, damageAmount);
-            Console.WriteLine(lastCard.Fortitude);
+            Console.WriteLine(lastCard.GetType());
         }
         return false;
     }

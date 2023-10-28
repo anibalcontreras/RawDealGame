@@ -15,7 +15,8 @@ public class Kane : Superstar
         {
             _view.SayThatPlayerIsGoingToUseHisAbility(player.Superstar.Name, player.Superstar.SuperstarAbility);
             _view.SayThatSuperstarWillTakeSomeDamage(opponent.Superstar.Name, 1);
-            opponent.ReceiveDamage(1);
+            // Esto esta muy mal jajaj (Este player.GetHand esta harcdodeado)
+            opponent.ReceiveDamage(1, player.GetHand()[0]);
             MarkAbilityAsUsed();
         }
     }
