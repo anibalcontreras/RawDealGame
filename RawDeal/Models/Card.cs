@@ -9,16 +9,11 @@ public class Card : IViewableCardInfo
     public string Damage { get; set; } = string.Empty;
     public string StunValue { get; set; } = string.Empty;
     public string CardEffect { get; set; } = string.Empty;
-    
-    public string GetTypesAsString()
-    {
-        return string.Join(", ", Types.Select(type => type.ToUpper()));
-    }
     public override string ToString()
     {
         return Formatter.CardToString(this);
     }
-    public virtual Card Clone()
+    public Card Clone()
     {
         return new Card
         {
@@ -31,11 +26,10 @@ public class Card : IViewableCardInfo
             CardEffect = CardEffect
         };
     }
-    
     public enum CardType
     {
-        MANEUVER,
-        ACTION,
-        REVERSAL,
+        Maneuver,
+        Action,
+        Reversal,
     }
 }

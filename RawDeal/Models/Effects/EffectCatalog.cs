@@ -6,22 +6,20 @@ public class EffectCatalog
     private readonly Dictionary<string, Effect> _effects = new Dictionary<string, Effect>();
     public Effect GetEffectBy(string cardTitle, string playType)
     {
-        if (IsHybridCard(cardTitle) && playType == Card.CardType.MANEUVER.ToString())
+        string cardPlayType = Card.CardType.Maneuver.ToString().ToUpper();
+        if (IsHybridCard(cardTitle) && playType == cardPlayType)
         {
             return new NoEffect(_view);
         }
         if (_effects.ContainsKey(cardTitle))
             return _effects[cardTitle];
-    
         return new NoEffect(_view);
     }
-
     public EffectCatalog(View view)
     {
         _view = view;
         InitializeEffects();
     }
-
     private void InitializeEffects()
     {
         _effects["Chop"] = new DrawCardEffect(_view);

@@ -19,7 +19,9 @@ public static class PlayUtility
 
     private static bool CardTypeIsPlayable(Play play)
     {
-        List<string> playableTypes = new List<string> { "MANEUVER", "ACTION" }; // Agregar mas tipos si llega a ser necesraio
+        string cardTypeManeuver = Card.CardType.Maneuver.ToString().ToUpper();
+        string cardTypeAction = Card.CardType.Action.ToString().ToUpper();
+        List<string> playableTypes = new List<string> { cardTypeManeuver, cardTypeAction };
         return play.CardInfo.Types.Any(type => playableTypes.Contains(type.ToUpper()));
     }
 
@@ -28,7 +30,6 @@ public static class PlayUtility
         int cardFortitude = int.Parse(play.CardInfo.Fortitude);
         return cardFortitude <= playerFortitude;
     }
-
 
     private static List<Play> ConvertCardsToPlays(List<Card> cards) =>
         cards.SelectMany(DivideCardByTypes).ToList();
