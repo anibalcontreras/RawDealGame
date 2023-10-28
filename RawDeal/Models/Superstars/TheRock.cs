@@ -4,17 +4,19 @@ namespace RawDeal.Models.Superstars;
 public class TheRock : Superstar
 {
     private readonly View _view;
+
     public TheRock(View view)
     {
         _view = view;
         ActivationMoment = AbilityActivation.StartOfTurn;
     }
+
     public override void ActivateAbility(Player player, Player opponent, AbilityActivation activationTime)
     {
         if (activationTime == ActivationMoment && !HasUsedAbility)
             UseAbility(player);
     }
-    
+
     private void UseAbility(Player player)
     {
         if (CanUseAbility(player) && WantsToUseAbility(player))
@@ -26,37 +28,48 @@ public class TheRock : Superstar
 
     private bool CanUseAbility(Player player)
     {
-        return player.GetRingside().Count > 0;
+        List<Card> ringside = player.GetRingside();
+        return ringside.Count > 0;
     }
 
     private bool WantsToUseAbility(Player player)
     {
-        bool wantsToUseAbility = _view.DoesPlayerWantToUseHisAbility(player.Superstar.Name);
+        string playerName = player.Superstar.Name;
+        bool wantsToUseAbility = _view.DoesPlayerWantToUseHisAbility(playerName);
+    
         if (wantsToUseAbility)
         {
-            _view.SayThatPlayerIsGoingToUseHisAbility(player.Superstar.Name, player.Superstar.SuperstarAbility);
+            string superstarAbility = player.Superstar.SuperstarAbility;
+            _view.SayThatPlayerIsGoingToUseHisAbility(playerName, superstarAbility);
             return true;
         }
         return false;
     }
 
-    
     private void RecoverCardFromRingsideToArsenal(Player player)
     {
         int selectedCardIndex = GetSelectedCardIndexFromRingside(player);
         MoveSelectedCardToArsenalBottom(player, selectedCardIndex);
     }
-    
+
     private int GetSelectedCardIndexFromRingside(Player player)
     {
-        List<string> ringsideCards = player.GetRingside().Select(card => card.ToString()).ToList();
-        return _view.AskPlayerToSelectCardsToRecover(player.Superstar.Name, 1, ringsideCards);
+        List<Card> ringside = player.GetRingside();
+        List<string> ringsideCards = ringside.Select(card => card.ToString()).ToList();
+        string playerName = player.Superstar.Name;
+    
+        return _view.AskPlayerToSelectCardsToRecover(playerName, 1, ringsideCards);
     }
 
     private void MoveSelectedCardToArsenalBottom(Player player, int selectedCardIndex)
     {
-        Card selectedCard = player.GetRingside()[selectedCardIndex];
-        player.GetRingside().Remove(selectedCard);
-        player.GetArsenal().Insert(0, selectedCard);
+        List<Card> ringside = player.GetRingside();
+        Card selectedCard = ringside[selectedCardIndex];
+    
+        ringside.Remove(selectedCard);
+    
+        List<Card> arsenal = player.GetArsenal();
+        arsenal.Insert(0, selectedCard);
     }
+
 }

@@ -16,7 +16,6 @@ public class GameplayController : IObserver
     private readonly SuperstarAbilityController _superstarAbilityController;
     private readonly CardPlayController _cardPlayController;
     private readonly CardDisplayController _cardDisplayController;
-    
     public GameplayController(View view)
     {
         _view = view;
@@ -26,7 +25,6 @@ public class GameplayController : IObserver
         _cardPlayController.RegisterObserver(this);
         _cardDisplayController = new CardDisplayController(view);
     }
-    
     public void Update(string message, Player player)
     {
         if (message == "EndGame")
@@ -82,7 +80,6 @@ public class GameplayController : IObserver
         }
         return _continueTurn;
     }
-    
     private void HandleEndTurnAction(Player firstPlayer, Player secondPlayer)
     {
         CurrentPlayer = firstPlayer;
@@ -95,12 +92,10 @@ public class GameplayController : IObserver
         TurnOn = false;
         _superstarAbilityController.ResetAbilityUsage(CurrentPlayer);
     }
-    
     private void HandleGiveUpAction(Player opponentPlayer)
     {
         EndGame(opponentPlayer);
     }
-
     private void EndGame(Player winningPlayer)
     {
         TurnOn = false;

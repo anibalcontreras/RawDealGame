@@ -2,5 +2,7 @@ namespace RawDeal.Exceptions;
 
 public class DeserializationNullException : Exception
 {
-    public DeserializationNullException(string message) : base(message) { }
+    private const string DefaultMessage = "Deserialization returned null or encountered an error.";
+
+    public DeserializationNullException() : base(DefaultMessage) { }
 }

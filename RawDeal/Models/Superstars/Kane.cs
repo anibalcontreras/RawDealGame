@@ -16,8 +16,12 @@ public class Kane : Superstar
     {
         if (activationTime == ActivationMoment && !HasUsedAbility)
         {
-            _view.SayThatPlayerIsGoingToUseHisAbility(player.Superstar.Name, player.Superstar.SuperstarAbility);
-            _view.SayThatSuperstarWillTakeSomeDamage(opponent.Superstar.Name, 1);
+            string playerName = player.Superstar.Name;
+            string opponentName = opponent.Superstar.Name;
+            string superstarAbility = player.Superstar.SuperstarAbility;
+
+            _view.SayThatPlayerIsGoingToUseHisAbility(playerName, superstarAbility);
+            _view.SayThatSuperstarWillTakeSomeDamage(opponentName, 1);
             _playerActionsController.ReceiveDamage(opponent, 1);
             MarkAbilityAsUsed();
         }

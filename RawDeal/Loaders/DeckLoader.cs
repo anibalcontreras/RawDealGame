@@ -4,16 +4,14 @@ using RawDeal.Models.Superstars;
 namespace RawDeal.Loaders;
 public static class DeckLoader
 {
-    private static readonly Dictionary<string, Card> allAvailableCards = new Dictionary<string, Card>();
-    private static readonly Dictionary<string, Superstar> allAvailableSuperstars = new Dictionary<string, Superstar>();
+    private static readonly Dictionary<string, Card> AllAvailableCards = new Dictionary<string, Card>();
+    private static readonly Dictionary<string, Superstar> AllAvailableSuperstars = new Dictionary<string, Superstar>();
     private const string SuperstarCardSuffix = " (Superstar Card)";
-
     public static void InitializeDeckLoader(View view)
     {
         LoadAllCards();
         LoadAllSuperstars(view);
     }
-
     public static Deck LoadDeck(string path)
     {
         ValidateFile(path);
@@ -22,16 +20,14 @@ public static class DeckLoader
 
         return CreateDeckFromLines(lines);
     }
-
     private static void LoadAllCards()
     {
         List<Card> cards = CardLoader.LoadCardsFromJson();
         foreach (Card card in cards)
         {
-            allAvailableCards[card.Title] = card;
+            AllAvailableCards[card.Title] = card;
         }
     }
-
     private static void LoadAllSuperstars(View view)
     {
         List<SuperstarData> superstarsData = SuperstarLoader.LoadSuperstarsFromJson();
@@ -44,7 +40,7 @@ public static class DeckLoader
             superstar.SuperstarValue = superstarData.SuperstarValue;
             superstar.SuperstarAbility = superstarData.SuperstarAbility;
             superstar.SuperstarCard = superstarData.SuperstarCard;
-            allAvailableSuperstars[superstar.Name] = superstar;
+            AllAvailableSuperstars[superstar.Name] = superstar;
         }
     }
 
@@ -80,7 +76,7 @@ public static class DeckLoader
 
     private static Superstar GetSuperstarByName(string name)
     {
-        if (allAvailableSuperstars.TryGetValue(name, out var superstar))
+        if (AllAvailableSuperstars.TryGetValue(name, out var superstar))
         {
             return superstar;
         }
@@ -89,9 +85,9 @@ public static class DeckLoader
 
     private static void AddCardsToDeck(Deck deck, string[] cardLines)
     {
-        foreach (var cardTitle in cardLines)
+        foreach (string cardTitle in cardLines)
         {
-            if (allAvailableCards.TryGetValue(cardTitle, out var card))
+            if (AllAvailableCards.TryGetValue(cardTitle, out var card))
             {
                 Card instantiatedCard = CardFactory.CreateCardFromExisting(card);
                 deck.Cards.Add(instantiatedCard);

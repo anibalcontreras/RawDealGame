@@ -2,5 +2,7 @@ namespace RawDeal.Exceptions;
 
 public class InvalidDeckException : Exception
 {
-    public InvalidDeckException(string message) : base(message) { }
+    private const string DefaultMessage = "The deck is invalid.";
+
+    public InvalidDeckException() : base(DefaultMessage) { }
 }

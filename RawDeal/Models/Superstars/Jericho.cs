@@ -1,6 +1,5 @@
 using RawDealView;
 namespace RawDeal.Models.Superstars;
-
 public class Jericho : Superstar
 {
     private readonly View _view;
@@ -10,43 +9,59 @@ public class Jericho : Superstar
         _view = view;
         ActivationMoment = AbilityActivation.InMenu;
     }
-    
     public override bool CanUseAbility(Player player)
     {
-        return !HasUsedAbility && player.GetHand().Count >= 1;
+        int handCount = player.GetHand().Count;
+        return !HasUsedAbility && handCount >= 1;
     }
+
     public override void ActivateAbility(Player player, Player opponent, AbilityActivation activationTime)
     {
         if (activationTime == ActivationMoment && !HasUsedAbility && CanUseAbility(player))
             UseAbility(player, opponent);
     }
+
     private void UseAbility(Player player, Player opponent)
     {
-        _view.SayThatPlayerIsGoingToUseHisAbility(player.Superstar.Name, player.Superstar.SuperstarAbility);
+        string playerName = player.Superstar.Name;
+        string superstarAbility = player.Superstar.SuperstarAbility;
+
+        _view.SayThatPlayerIsGoingToUseHisAbility(playerName, superstarAbility);
         DiscardCard(player);
         OpponentDiscardCard(opponent);
         MarkAbilityAsUsed();
     }
+
     private void DiscardCard(Player player)
     {
-        List<string> handCards = player.GetHand().Select(card => card.ToString()).ToList();
-        int selectedCardIndex = _view.AskPlayerToSelectACardToDiscard(handCards,
-            player.Superstar.Name,
-            player.Superstar.Name,
+        List<Card> hand = player.GetHand();
+        List<string> handCards = hand.Select(card => card.ToString()).ToList();
+    
+        string playerName = player.Superstar.Name;
+        int selectedCardIndex = _view.AskPlayerToSelectACardToDiscard(handCards, 
+            playerName, 
+            playerName, 
             1);
-        Card selectedCard = player.GetHand()[selectedCardIndex];
-        player.GetHand().Remove(selectedCard);
+    
+        Card selectedCard = hand[selectedCardIndex];
+        hand.Remove(selectedCard);
         player.GetRingside().Add(selectedCard);
     }
+
     private void OpponentDiscardCard(Player opponent)
     {
-        List<string> handCards = opponent.GetHand().Select(card => card.ToString()).ToList();
+        List<Card> hand = opponent.GetHand();
+        List<string> handCards = hand.Select(card => card.ToString()).ToList();
+    
+        string opponentName = opponent.Superstar.Name;
         int selectedCardIndex = _view.AskPlayerToSelectACardToDiscard(handCards, 
-            opponent.Superstar.Name,
-            opponent.Superstar.Name,
+            opponentName, 
+            opponentName, 
             1);
-        Card selectedCard = opponent.GetHand()[selectedCardIndex];
-        opponent.GetHand().Remove(selectedCard);
+    
+        Card selectedCard = hand[selectedCardIndex];
+        hand.Remove(selectedCard);
         opponent.GetRingside().Add(selectedCard);
     }
+
 }

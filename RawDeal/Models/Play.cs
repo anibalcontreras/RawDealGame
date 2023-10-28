@@ -4,14 +4,12 @@ namespace RawDeal.Models;
 
 public class Play : IViewablePlayInfo
 {
-    private readonly IViewableCardInfo _cardInfo;
-    private readonly string _playedAs;
-
     public Play(IViewableCardInfo cardInfo, string playedAs)
     {
-        _cardInfo = cardInfo;
-        _playedAs = playedAs;
+        CardInfo = cardInfo;
+        PlayedAs = playedAs;
     }
-    public IViewableCardInfo CardInfo => _cardInfo;
-    public string PlayedAs => _playedAs;
+    public IViewableCardInfo CardInfo { get; }
+
+    public string PlayedAs { get; }
 }

@@ -19,35 +19,52 @@ public class Undertaker : Superstar
 
     private void UseAbility(Player player, Player opponent)
     {
-        _view.SayThatPlayerIsGoingToUseHisAbility(player.Superstar.Name, player.Superstar.SuperstarAbility);
+        string playerName = player.Superstar.Name;
+        string superstarAbility = player.Superstar.SuperstarAbility;
+
+        _view.SayThatPlayerIsGoingToUseHisAbility(playerName, superstarAbility);
         DiscardTwoCards(player);
         RecoverCardFromRingsideToHand(player);
         MarkAbilityAsUsed();
     }
-    
+
     public override bool CanUseAbility(Player player)
     {
-        return !HasUsedAbility && player.GetHand().Count >= 2;
+        List<Card> hand = player.GetHand();
+        return !HasUsedAbility && hand.Count >= 2;
     }
 
     private void DiscardTwoCards(Player player)
     {
+        string playerName = player.Superstar.Name;
+        List<Card> hand = player.GetHand();
+        List<Card> ringside = player.GetRingside();
+
         for (int i = 0; i < 2; i++)
         {
-            List<string> handCards = player.GetHand().Select(card => card.ToString()).ToList();
-            int selectedCardIndex = _view.AskPlayerToSelectACardToDiscard(handCards, player.Superstar.Name, player.Superstar.Name, 2 - i);
-            Card selectedCard = player.GetHand()[selectedCardIndex];
-            player.GetHand().Remove(selectedCard);
-            player.GetRingside().Add(selectedCard);
+            List<string> handCards = hand.Select(card => card.ToString()).ToList();
+            int selectedCardIndex = _view.AskPlayerToSelectACardToDiscard(handCards, 
+                playerName, 
+                playerName, 
+                2 - i);
+            Card selectedCard = hand[selectedCardIndex];
+        
+            hand.Remove(selectedCard);
+            ringside.Add(selectedCard);
         }
     }
 
     private void RecoverCardFromRingsideToHand(Player player)
     {
-        List<string> ringsideCards = player.GetRingside().Select(card => card.ToString()).ToList();
-        int selectedCardIndex = _view.AskPlayerToSelectCardsToPutInHisHand(player.Superstar.Name, 1, ringsideCards);
-        Card selectedCard = player.GetRingside()[selectedCardIndex];
-        player.GetRingside().Remove(selectedCard);
+        string playerName = player.Superstar.Name;
+        List<Card> ringside = player.GetRingside();
+        List<string> ringsideCards = ringside.Select(card => card.ToString()).ToList();
+    
+        int selectedCardIndex = _view.AskPlayerToSelectCardsToPutInHisHand(playerName, 1, ringsideCards);
+        Card selectedCard = ringside[selectedCardIndex];
+    
+        ringside.Remove(selectedCard);
         player.GetHand().Add(selectedCard);
     }
+
 }

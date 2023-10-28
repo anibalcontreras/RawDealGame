@@ -1,18 +1,14 @@
 using RawDealView;
 using RawDeal.Models;
 using RawDealView.Options;
-
 namespace RawDeal.Controllers;
-
 public class CardDisplayController
 {
     private readonly View _view;
-
     public CardDisplayController(View view)
     {
         _view = view;
     }
-
     public void HandleShowCardsActions(Player firstPlayer, Player secondPlayer)
     {
         CardSet showCardsActionsSelection = _view.AskUserWhatSetOfCardsHeWantsToSee();
@@ -40,7 +36,6 @@ public class CardDisplayController
                 break;
         }
     }
-
     private void DisplayFormattedCards(Player player, List<Card> cardSet)
     {
         List<string> formattedCards = player.GetFormattedCardsInfo(cardSet);

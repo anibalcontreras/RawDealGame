@@ -18,12 +18,10 @@ public class NoEffect : Effect
             ApplyCardEffect(player, playedCard);
         return hasLost;
     }
-
     private int CalculateCardDamage(Card card)
     {
         return int.Parse(card.Damage);
     }
-    
     private void AnnounceDamageToOpponent(int cardDamage, Player opponent)
     { 
         int actualDamage = opponent.Superstar.CalculateDamage(cardDamage);
@@ -32,13 +30,11 @@ public class NoEffect : Effect
             _view.SayThatSuperstarWillTakeSomeDamage(opponent.Superstar.Name, actualDamage);
         }
     }
-    
     private bool ApplyCardDamageToOpponent(int cardDamage, Player opponent)
     {
         int actualDamage = opponent.Superstar.CalculateDamage(cardDamage);
         return _playerActionsController.ReceiveDamage(opponent, actualDamage);
     }
-    
     private void ApplyCardEffect(Player player, Card playedCard)
     {
         int indexOfCardInHand = player.GetHand().FindIndex(card => ReferenceEquals(card, playedCard));

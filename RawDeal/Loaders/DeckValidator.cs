@@ -4,10 +4,8 @@ namespace RawDeal.Loaders;
 
 public static class DeckValidator
 {
-    
     private const int DeckSize = 60;
     private const int MaxNonUniqueCards = 3;
-
     private enum CardSubtype
     {
         Unique,
@@ -66,17 +64,14 @@ public static class DeckValidator
                 return false;
             }
         }
-
         return true;
     }
-
     private static bool HasEitherHeelOrFaceCards(Deck deck)
     {
         bool hasHeel = deck.Cards.Any(card => card.Subtypes.Contains(CardSubtype.Heel.ToString()));
         bool hasFace = deck.Cards.Any(card => card.Subtypes.Contains(CardSubtype.Face.ToString()));
         return !(hasHeel && hasFace);
     }
-    
     private static bool SuperstarCanUseExclusiveCards(Deck deck,
         Dictionary<string, Superstar> allAvailableSuperstars)
     {

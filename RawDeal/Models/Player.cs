@@ -17,10 +17,32 @@ public class Player
     {
         Superstar = deck.Superstar;
         _view = view;
-        Arsenal.AddRange(deck.Cards);
+        List<Card> deckCards = deck.Cards;
+        Arsenal.AddRange(deckCards);
     }
 
-    public int Fortitude => _baseFortitude + RingArea.Sum(card => int.Parse(card.Damage));
+    public int Fortitude 
+    {
+        get
+        {
+            int totalDamage = CalculateTotalDamageFromRingArea();
+            int totalFortitude = _baseFortitude + totalDamage;
+            return totalFortitude;
+        }
+    }
+
+    private int CalculateTotalDamageFromRingArea()
+    {
+        int totalDamage = 0;
+        foreach (Card card in RingArea)
+        {
+            int cardDamage = int.Parse(card.Damage);
+            totalDamage += cardDamage;
+        }
+        return totalDamage;
+    }
+
+
     public List<Card> GetHand()
     {
         return Hand;
@@ -35,12 +57,12 @@ public class Player
     {
         return Ringside;
     }
-    
+
     public List<Card> GetArsenal()
     {
         return Arsenal;
     }
-    
+
     public List<string> GetFormattedCardsInfo(List<Card> cards)
     {
         return cards.Select(Formatter.CardToString).ToList();
@@ -48,9 +70,12 @@ public class Player
 
     public PlayerInfo PlayerInfo()
     {
-        return new PlayerInfo(Superstar.Name, Fortitude, Hand.Count, Arsenal.Count);
+        string playerName = Superstar.Name;
+        int playerFortitude = Fortitude;
+        int handCount = Hand.Count;
+        int arsenalCount = Arsenal.Count;
+        return new PlayerInfo(playerName, playerFortitude, handCount, arsenalCount);
     }
-    
     public bool HasEmptyArsenal()
     {
         return !Arsenal.Any();

@@ -4,29 +4,18 @@ using RawDeal.Loaders;
 using RawDeal.Models;
 using RawDeal.Models.Superstars;
 using RawDealView;
-
 namespace RawDeal;
-
-public class GameInitializationResult
-{
-    public Player FirstPlayer { get; set; }
-    public Player SecondPlayer { get; set; }
-    public bool IsSuccess { get; set; }
-}
-
 public class GameInitializer
 {
     private readonly View _view;
     private readonly string _deckFolder;
     private readonly PlayerActionsController _playerActionsController;
-
     public GameInitializer(View view, string deckFolder)
     {
         _view = view;
         _deckFolder = deckFolder;
         _playerActionsController = new PlayerActionsController(view);
     }
-
     public GameInitializationResult InitializeGame()
     {
         GameInitializationResult result = new GameInitializationResult();
@@ -50,7 +39,6 @@ public class GameInitializer
 
         return result;
     }
-
     private (Player StartingPlayer, Player OtherPlayer) SetPlayers((Deck FirstDeck, Deck SecondDeck) decks)
     {
         Player firstPlayer = new Player(decks.FirstDeck, _view);
@@ -63,9 +51,6 @@ public class GameInitializer
 
         return (startingPlayer, otherPlayer);
     }
-
-
-
     private Deck GetAndValidateDeck(View view)
     {
         Dictionary<string, Superstar> allAvailableSuperstars = SuperstarLoader.LoadSuperstarsIntoDictionary(view);
@@ -74,17 +59,14 @@ public class GameInitializer
     
         if (!DeckValidator.IsValidDeck(deck, allAvailableSuperstars).IsValid)
         {
-            throw new InvalidDeckException("The deck is invalid.");
+            throw new InvalidDeckException();
         }
         return deck;
     }
-
     private Deck InitializeDeck(View view)
     {
-
         return GetAndValidateDeck(view);
     }
-
     private Player DetermineStartingPlayer(Player firstPlayer, Player secondPlayer)
     {
         Superstar firstPlayerSuperstar = firstPlayer.Superstar;
@@ -95,13 +77,11 @@ public class GameInitializer
 
         return firstPlayerSuperstarValue >= secondPlayerSuperstarValue ? firstPlayer : secondPlayer;
     }
-
-
     private void InitializePlayerHands(Player firstPlayer, Player secondPlayer)
     {
         Superstar firstPlayerSuperstar = firstPlayer.Superstar;
         Superstar secondPlayerSuperstar = secondPlayer.Superstar;
-
+        
         int firstPlayerHandSize = firstPlayerSuperstar.HandSize;
         int secondPlayerHandSize = secondPlayerSuperstar.HandSize;
 

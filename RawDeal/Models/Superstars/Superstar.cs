@@ -1,4 +1,5 @@
 namespace RawDeal.Models.Superstars;
+
 public abstract class Superstar
 {
     public string Name { get; set; } = string.Empty;
@@ -13,14 +14,17 @@ public abstract class Superstar
     public virtual void ActivateAbility(Player player, Player opponent, AbilityActivation activationTime)
     {
     }
+    
     public virtual bool CanUseAbility(Player player)
     {
         return true;
     }
+    
     protected void MarkAbilityAsUsed()
     {
         HasUsedAbility = true;
     }
+    
     public void MarkAbilityAsUnused()
     {
         HasUsedAbility = false;

@@ -6,21 +6,23 @@ public class StoneCold : Superstar
 {
     private readonly View _view;
     private readonly PlayerActionsController _playerActionsController;
+
     public StoneCold(View view)
     {
         _view = view;
         ActivationMoment = AbilityActivation.InMenu;
         _playerActionsController = new PlayerActionsController(view);
     }
-    
+
     public override void ActivateAbility(Player player, Player opponent, AbilityActivation activationTime)
     {
-        if (activationTime == ActivationMoment && !HasUsedAbility && player.GetArsenal().Count > 0)
+        int arsenalCount = player.GetArsenal().Count;
+        if (activationTime == ActivationMoment && !HasUsedAbility && arsenalCount > 0)
         {
             UseAbility(player, opponent);
         }
     }
-    
+
     private void UseAbility(Player player, Player opponent)
     {
         AnnounceAbilityUsage(player);
@@ -31,24 +33,28 @@ public class StoneCold : Superstar
 
     private void AnnounceAbilityUsage(Player player)
     {
-        _view.SayThatPlayerIsGoingToUseHisAbility(player.Superstar.Name, player.Superstar.SuperstarAbility);
+        string playerName = player.Superstar.Name;
+        string superstarAbility = player.Superstar.SuperstarAbility;
+        _view.SayThatPlayerIsGoingToUseHisAbility(playerName, superstarAbility);
     }
 
     private void DrawCardFromArsenal(Player player)
     {
+        string playerName = player.Superstar.Name;
         _playerActionsController.DrawCard(player);
-        _view.SayThatPlayerDrawCards(player.Superstar.Name, 1);
+        _view.SayThatPlayerDrawCards(playerName, 1);
     }
 
     private void ReturnCardFromHandToArsenalBottom(Player player)
     {
-        List<string> formattedCardsInfo = player.GetFormattedCardsInfo(player.GetHand());
-        int selectedCardIndex = _view.AskPlayerToReturnOneCardFromHisHandToHisArsenal(
-            player.Superstar.Name, 
-            formattedCardsInfo
-        );
-        Card selectedCard = player.GetHand()[selectedCardIndex];
-        player.GetHand().Remove(selectedCard);
-        player.GetArsenal().Insert(0, selectedCard);
+        List<Card> hand = player.GetHand();
+        List<string> formattedCardsInfo = player.GetFormattedCardsInfo(hand);
+        string playerName = player.Superstar.Name;
+    
+        int selectedCardIndex = _view.AskPlayerToReturnOneCardFromHisHandToHisArsenal(playerName, formattedCardsInfo);
+        Card selectedCard = hand[selectedCardIndex];
+        hand.Remove(selectedCard);
+        List<Card> arsenal = player.GetArsenal();
+        arsenal.Insert(0, selectedCard);
     }
 }

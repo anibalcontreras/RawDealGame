@@ -17,12 +17,12 @@ public class JsonLoader<T>
             {
                 List<T> deserializedData = 
                     JsonSerializer.Deserialize<List<T>>(json) ?? 
-                    throw new DeserializationNullException("Error during deserialization");
+                    throw new DeserializationNullException();
                 return deserializedData;
             }
             catch (JsonException)
             {
-                throw new DeserializationNullException("Error during deserialization");
+                throw new DeserializationNullException();
             }
         }
         throw new FileNotFoundException($"Cannot find file at {_dataPath}");

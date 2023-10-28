@@ -1,5 +1,4 @@
 namespace RawDeal.Models.Superstars;
-
 public enum AbilityActivation
 {
     StartOfTurn,

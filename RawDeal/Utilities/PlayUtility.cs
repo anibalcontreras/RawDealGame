@@ -1,6 +1,5 @@
 using RawDealView.Formatters;
 using RawDeal.Models;
-
 namespace RawDeal.Utilities;
 public static class PlayUtility
 {
