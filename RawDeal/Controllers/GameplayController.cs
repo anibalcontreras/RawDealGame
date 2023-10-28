@@ -2,7 +2,7 @@ using RawDeal.Interfaces;
 using RawDealView;
 using RawDealView.Options;
 using RawDeal.Models;
-
+using RawDeal.Models.Superstars;
 namespace RawDeal.Controllers;
 public class GameplayController : IObserver
 {
@@ -93,14 +93,9 @@ public class GameplayController : IObserver
         if (CurrentPlayer.HasEmptyArsenal())
             EndGame(Opponent);
         TurnOn = false;
-        ResetAbilityUsage();
+        _superstarAbilityController.ResetAbilityUsage(CurrentPlayer);
     }
-
-    private void ResetAbilityUsage()
-    {
-        CurrentPlayer.Superstar.MarkAbilityAsUnused();
-    }
-
+    
     private void HandleGiveUpAction(Player opponentPlayer)
     {
         EndGame(opponentPlayer);

@@ -3,13 +3,14 @@ using RawDeal.Models;
 using RawDeal.Exceptions;
 using RawDeal.Models.Effects;
 using RawDeal.Interfaces;
+using RawDeal.Utilities;
 namespace RawDeal.Controllers;
 
 public class CardPlayController : ISubject
 {
     private readonly View _view;
     private readonly EffectCatalog _effectCatalog;
-    private List<IObserver> _observers = new List<IObserver>();
+    private readonly List <IObserver> _observers = new List<IObserver>();
     private Player CurrentPlayer { get; set; }
     private Player Opponent { get; set; }
     private List<Card> PlayableCards { get; set; }
@@ -57,7 +58,8 @@ public class CardPlayController : ISubject
 
     private bool AttemptToPlayCard()
     {
-        List<string> formatPlayableCards = PlayUtility.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude);
+        List<string> formatPlayableCards=
+            PlayUtility.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude);
         SelectedPlayIndex = _view.AskUserToSelectAPlay(formatPlayableCards);
         return SelectedPlayIndex != -1;
     }
@@ -105,7 +107,8 @@ public class CardPlayController : ISubject
 
     private void AnnounceAttemptToPlayCard()
     {
-        string selectedPlay = PlayUtility.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude)[SelectedPlayIndex];
+        string selectedPlay =
+            PlayUtility.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude)[SelectedPlayIndex];
         _view.SayThatPlayerIsTryingToPlayThisCard(CurrentPlayer.Superstar.Name, selectedPlay);
     }
 
@@ -117,6 +120,5 @@ public class CardPlayController : ISubject
     private void EndGame(Player winningPlayer)
     {
         NotifyObservers("EndGame", winningPlayer);
-        // _view.CongratulateWinner(winningPlayer.Superstar.Name);
     }
 }

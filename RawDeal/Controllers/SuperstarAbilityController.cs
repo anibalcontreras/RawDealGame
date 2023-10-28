@@ -1,6 +1,7 @@
 using RawDealView;
 using RawDeal.Models;
 using RawDealView.Options;
+using RawDeal.Models.Superstars;
 namespace RawDeal.Controllers;
 
 public class SuperstarAbilityController
@@ -37,5 +38,9 @@ public class SuperstarAbilityController
             return _view.AskUserWhatToDoWhenUsingHisAbilityIsPossible();
 
         return _view.AskUserWhatToDoWhenHeCannotUseHisAbility();
+    }
+    public void ResetAbilityUsage(Player player)
+    {
+        player.Superstar.MarkAbilityAsUnused();
     }
 }

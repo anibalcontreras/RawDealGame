@@ -1,9 +1,11 @@
 using RawDeal.Controllers;
 using RawDeal.Exceptions;
-namespace RawDeal;
+using RawDeal.Loaders;
+using RawDeal.Models;
+using RawDeal.Models.Superstars;
 using RawDealView;
-using Logic;
-using Models;
+
+namespace RawDeal;
 
 public class GameInitializationResult
 {

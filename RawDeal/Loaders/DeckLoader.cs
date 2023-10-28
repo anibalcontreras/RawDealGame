@@ -1,6 +1,7 @@
 using RawDeal.Models;
 using RawDealView;
-namespace RawDeal.Logic;
+using RawDeal.Models.Superstars;
+namespace RawDeal.Loaders;
 public static class DeckLoader
 {
     private static readonly Dictionary<string, Card> allAvailableCards = new Dictionary<string, Card>();

@@ -1,31 +1,10 @@
-using RawDeal.Models;
-using System.Text.Json;
 using RawDealView;
-
-namespace RawDeal.Logic;
-public class JsonLoader<T>
-{
-    private readonly string _dataPath;
-
-    public JsonLoader(string dataPath)
-    {
-        _dataPath = dataPath;
-    }
-
-    public List<T> LoadFromJson()
-    {
-        if (File.Exists(_dataPath))
-        {
-            var json = File.ReadAllText(_dataPath);
-            return JsonSerializer.Deserialize<List<T>>(json);
-        }
-        throw new FileNotFoundException($"Cannot find file at {_dataPath}");
-    }
-}
-
+using RawDeal.Models.Superstars;
+namespace RawDeal.Loaders;
 public static class SuperstarLoader
 {
-    private static JsonLoader<SuperstarData> _jsonLoader = new JsonLoader<SuperstarData>("data/superstar.json");
+    static readonly string SuperstarDataPath = "data/superstar.json";
+    private static JsonLoader<SuperstarData> _jsonLoader = new JsonLoader<SuperstarData>(SuperstarDataPath);
     public static List<SuperstarData> LoadSuperstarsFromJson()
     {
         return _jsonLoader.LoadFromJson();
@@ -46,15 +25,5 @@ public static class SuperstarLoader
             superstarsDict[superstar.Logo] = superstar;
         }
         return superstarsDict;
-    }
-
-}
-
-public static class CardLoader
-{
-    private static JsonLoader<Card> _jsonLoader = new JsonLoader<Card>("data/cards.json");
-    public static List<Card> LoadCardsFromJson()
-    {
-        return _jsonLoader.LoadFromJson();
     }
 }

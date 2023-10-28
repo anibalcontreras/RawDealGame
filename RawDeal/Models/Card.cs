@@ -26,10 +26,10 @@ public class Card : IViewableCardInfo
             CardEffect = CardEffect
         };
     }
+    
     public enum CardType
     {
         Maneuver,
-        Action,
-        Reversal,
+        Action
     }
 }

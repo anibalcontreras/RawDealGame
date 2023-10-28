@@ -28,7 +28,6 @@ public class PlayerActionsController
             player.GetArsenal().Remove(lastCard);
             player.GetRingside().Add(lastCard);
             _view.ShowCardOverturnByTakingDamage(lastCard.ToString(), i + 1, damageAmount);
-            Console.WriteLine(lastCard.GetType());
         }
         return false;
     }

@@ -1,6 +1,6 @@
 using RawDealView;
 using RawDealView.Formatters;
-
+using RawDeal.Models.Superstars;
 namespace RawDeal.Models;
 public class Player
 {
