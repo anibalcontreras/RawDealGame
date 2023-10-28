@@ -3,14 +3,13 @@ namespace RawDeal.Models.Effects;
 public class EffectCatalog
 {
     private readonly View _view;
-    private Dictionary<string, Effect> _effects = new Dictionary<string, Effect>();
+    private readonly Dictionary<string, Effect> _effects = new Dictionary<string, Effect>();
     public Effect GetEffectBy(string cardTitle, string playType)
     {
-        if (IsHybridCard(cardTitle) && playType == "MANEUVER")
+        if (IsHybridCard(cardTitle) && playType == Card.CardType.MANEUVER.ToString())
         {
             return new NoEffect(_view);
         }
-    
         if (_effects.ContainsKey(cardTitle))
             return _effects[cardTitle];
     

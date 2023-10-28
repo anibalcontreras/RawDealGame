@@ -1,15 +1,6 @@
 using RawDealView;
 using RawDeal.Models.Superstars;
 namespace RawDeal.Models;
-public class SuperstarData
-{
-    public string Name { get; set; } = string.Empty;
-    public string Logo { get; set; } = string.Empty;
-    public int HandSize { get; set; } = 0;
-    public int SuperstarValue { get; set; } = 0;
-    public string SuperstarAbility { get; set; } = string.Empty;
-    public Card SuperstarCard { get; set; } = new Card();
-}
 public abstract class Superstar
 {
     public string Name { get; set; } = string.Empty;
@@ -28,10 +19,7 @@ public abstract class Superstar
     {
         return true;
     }
-    public virtual void UseAbility(Player player, Player opponent)
-    {
-    }
-    public virtual void MarkAbilityAsUsed()
+    protected virtual void MarkAbilityAsUsed()
     {
         HasUsedAbility = true;
     }
@@ -70,6 +58,15 @@ public static class SuperstarFactory
                 throw new ArgumentException($"No se encontró el siguiente Superstar: {logo}");
         }
     }
+}
+public class SuperstarData
+{
+    public string Name { get; set; } = string.Empty;
+    public string Logo { get; set; } = string.Empty;
+    public int HandSize { get; set; } = 0;
+    public int SuperstarValue { get; set; } = 0;
+    public string SuperstarAbility { get; set; } = string.Empty;
+    public Card SuperstarCard { get; set; } = new Card();
 }
 public enum AbilityActivation
 {

@@ -1,3 +1,4 @@
+using RawDeal.Controllers;
 using RawDeal.Exceptions;
 namespace RawDeal;
 using RawDealView;
@@ -15,11 +16,13 @@ public class GameInitializer
 {
     private readonly View _view;
     private readonly string _deckFolder;
+    private readonly PlayerActionsController _playerActionsController;
 
     public GameInitializer(View view, string deckFolder)
     {
         _view = view;
         _deckFolder = deckFolder;
+        _playerActionsController = new PlayerActionsController(view);
     }
 
     public GameInitializationResult InitializeGame()
@@ -102,12 +105,12 @@ public class GameInitializer
 
         for (int i = 0; i < firstPlayerHandSize; i++) 
         {
-            firstPlayer.DrawCard();
+            _playerActionsController.DrawCard(firstPlayer);
         }
         
         for (int i = 0; i < secondPlayerHandSize; i++) 
         {
-            secondPlayer.DrawCard();
+            _playerActionsController.DrawCard(secondPlayer);
         }
     }
 }

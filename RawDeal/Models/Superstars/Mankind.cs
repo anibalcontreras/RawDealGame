@@ -1,31 +1,34 @@
+using RawDeal.Controllers;
 using RawDealView;
 namespace RawDeal.Models.Superstars;
 public class Mankind : Superstar
 {
     private readonly View _view;
+    private readonly PlayerActionsController _playerActionsController;
     public Mankind(View view)
     {
         _view = view;
         ActivationMoment = AbilityActivation.Automatic;
+        _playerActionsController = new PlayerActionsController(view);
     }
     public override void ActivateAbility(Player player, Player opponent, AbilityActivation activationTime)
     {
         if (activationTime == ActivationMoment && !HasUsedAbility)
-            UseAbility(player, opponent);
+            UseAbility(player);
     }
-    public override void UseAbility(Player player, Player opponent)
+    private void UseAbility(Player player)
     {
         DrawCardsAtStartOfTurn(player);
         MarkAbilityAsUsed();
     }
-     public void DrawCardsAtStartOfTurn(Player player)
+     private void DrawCardsAtStartOfTurn(Player player)
      {
          if (player.GetArsenal().Count == 1)
          {
-             player.DrawCard();
-             player.DrawCard();
+             _playerActionsController.DrawCard(player);
+             _playerActionsController.DrawCard(player);
          } else
-             player.DrawCard();
+             _playerActionsController.DrawCard(player);
      }
      
      public override int CalculateDamage(int originalDamage)

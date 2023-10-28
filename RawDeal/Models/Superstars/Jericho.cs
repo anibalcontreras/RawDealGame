@@ -20,7 +20,7 @@ public class Jericho : Superstar
         if (activationTime == ActivationMoment && !HasUsedAbility && CanUseAbility(player))
             UseAbility(player, opponent);
     }
-    public override void UseAbility(Player player, Player opponent)
+    private void UseAbility(Player player, Player opponent)
     {
         _view.SayThatPlayerIsGoingToUseHisAbility(player.Superstar.Name, player.Superstar.SuperstarAbility);
         DiscardCard(player);

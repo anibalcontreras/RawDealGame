@@ -12,10 +12,10 @@ public class TheRock : Superstar
     public override void ActivateAbility(Player player, Player opponent, AbilityActivation activationTime)
     {
         if (activationTime == ActivationMoment && !HasUsedAbility)
-            UseAbility(player, opponent);
+            UseAbility(player);
     }
     
-    public override void UseAbility(Player player, Player opponent)
+    private void UseAbility(Player player)
     {
         if (CanUseAbility(player) && WantsToUseAbility(player))
         {

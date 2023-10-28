@@ -1,14 +1,16 @@
+using RawDeal.Controllers;
 using RawDealView;
 namespace RawDeal.Models.Superstars;
 
 public class StoneCold : Superstar
 {
     private readonly View _view;
-    
+    private readonly PlayerActionsController _playerActionsController;
     public StoneCold(View view)
     {
         _view = view;
         ActivationMoment = AbilityActivation.InMenu;
+        _playerActionsController = new PlayerActionsController(view);
     }
     
     public override void ActivateAbility(Player player, Player opponent, AbilityActivation activationTime)
@@ -19,7 +21,7 @@ public class StoneCold : Superstar
         }
     }
     
-    public override void UseAbility(Player player, Player opponent)
+    private void UseAbility(Player player, Player opponent)
     {
         AnnounceAbilityUsage(player);
         DrawCardFromArsenal(player);
@@ -34,7 +36,7 @@ public class StoneCold : Superstar
 
     private void DrawCardFromArsenal(Player player)
     {
-        player.DrawCard();
+        _playerActionsController.DrawCard(player);
         _view.SayThatPlayerDrawCards(player.Superstar.Name, 1);
     }
 

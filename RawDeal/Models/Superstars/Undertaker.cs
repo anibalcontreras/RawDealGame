@@ -17,7 +17,7 @@ public class Undertaker : Superstar
             UseAbility(player, opponent);
     }
 
-    public override void UseAbility(Player player, Player opponent)
+    private void UseAbility(Player player, Player opponent)
     {
         _view.SayThatPlayerIsGoingToUseHisAbility(player.Superstar.Name, player.Superstar.SuperstarAbility);
         DiscardTwoCards(player);

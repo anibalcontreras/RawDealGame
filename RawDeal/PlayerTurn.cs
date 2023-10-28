@@ -1,3 +1,5 @@
+using RawDeal.Controllers;
+using RawDeal.Exceptions;
 using RawDeal.Models.Effects;
 using RawDealView;
 using RawDealView.Options;
@@ -8,18 +10,20 @@ public class PlayerTurn
 {
     private bool _continueTurn = true;
     private readonly View _view;
-    private Player CurrentPlayer { get; set; }
-    private Player Opponent { get; set; }
-    private List<Card> PlayableCards { get; set; }
+    private Player CurrentPlayer { get; set; } = null!;
+    private Player Opponent { get; set; } = null!;
+    private List<Card> PlayableCards { get; set; } = null!;
     private int SelectedPlayIndex { get; set; }
     private bool GameOn { get; set; } = true;
     private bool TurnOn { get; set; } = true;
     private readonly EffectCatalog _effectCatalog;
+    private readonly PlayerActionsController _playerActionsController;
     
     public PlayerTurn(View view)
     {
         _view = view;
         _effectCatalog = new EffectCatalog(view);
+        _playerActionsController = new PlayerActionsController(view);
     }
     public bool PlayTurn(Player firstPlayer, Player secondPlayer)
     {
@@ -30,7 +34,7 @@ public class PlayerTurn
     }
     private void StartPlayerTurn(Player player)
     {
-        player.DrawCard();
+        _playerActionsController.DrawCard(player);
         _view.SayThatATurnBegins(player.Superstar.Name);
     }
     private void ExecutePlayerActions(Player firstPlayer, Player secondPlayer)
@@ -103,7 +107,7 @@ public class PlayerTurn
         InitializePlayers(firstPlayer, secondPlayer);
         if (AttemptToPlayCard())
         {
-            ExecuteCardPlay(GetPlayedCard(), GetPlayedAs());
+            ExecuteCardPlay();
         }
     }
 
@@ -124,8 +128,17 @@ public class PlayerTurn
 
     private Card GetPlayedCard()
     {
-        return GetSelectedPlay().CardInfo as Card;
+        try
+        {
+            Card card = (Card)GetSelectedPlay().CardInfo;
+            return card;
+        }
+        catch (InvalidCastException)
+        {
+            throw new InvalidCardConversionException("Failed to convert CardInfo to Card.");
+        }
     }
+
 
     private string GetPlayedAs()
     {
@@ -144,11 +157,12 @@ public class PlayerTurn
         string playedAs = GetPlayedAs();
         
         Effect cardEffect = _effectCatalog.GetEffectBy(playedCard.Title, playedAs);
+        Console.WriteLine("El efecto es: " + cardEffect.ToString());
         bool hasLost = cardEffect.Apply(CurrentPlayer, Opponent, GetPlayedCard());
         if (hasLost)
             EndGame(CurrentPlayer);
     }
-    private void ExecuteCardPlay(Card playedCard, string playedAs)
+    private void ExecuteCardPlay()
     {
         AnnounceAttemptToPlayCard();
         AnnounceSuccessfulCardPlay();
