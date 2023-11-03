@@ -1,93 +1,98 @@
-namespace RawDeal;
-using RawDealView;
-using RawDeal.Logic;
+using RawDeal.Controllers;
+using RawDeal.Exceptions;
+using RawDeal.Loaders;
 using RawDeal.Models;
-
-public class GameInitializationResult
-{
-    public Player FirstPlayer { get; set; } = null!;
-    public Player SecondPlayer { get; set; } = null!;
-    public bool IsSuccess { get; set; }
-}
-
+using RawDeal.Models.Superstars;
+using RawDealView;
+namespace RawDeal;
 public class GameInitializer
 {
     private readonly View _view;
     private readonly string _deckFolder;
-
+    private readonly PlayerActionsController _playerActionsController;
     public GameInitializer(View view, string deckFolder)
     {
         _view = view;
         _deckFolder = deckFolder;
+        _playerActionsController = new PlayerActionsController(view);
     }
-
     public GameInitializationResult InitializeGame()
     {
         GameInitializationResult result = new GameInitializationResult();
 
-        DeckLoader.InitializeDeckLoader();
+        DeckLoader.InitializeDeckLoader(_view);
 
-        Deck firstDeck = InitializeFirstDeck();
-        if (firstDeck == null)
-            return result;
+        try
+        {
+            Deck firstDeck = InitializeDeck(_view);
+            Deck secondDeck = InitializeDeck(_view);
+            
+            (Player StartingPlayer, Player OtherPlayer) players = SetPlayers((firstDeck, secondDeck));
+            result.FirstPlayer = players.StartingPlayer;
+            result.SecondPlayer = players.OtherPlayer;
+            result.IsSuccess = true;
+        }
+        catch (InvalidDeckException)
+        {
+            _view.SayThatDeckIsInvalid();
+        }
 
-        Deck secondDeck = InitializeSecondDeck();
-        if (secondDeck == null)
-            return result;
-
-        Player firstPlayer = new Player(firstDeck, _view);
-        Player secondPlayer = new Player(secondDeck, _view);
+        return result;
+    }
+    private (Player StartingPlayer, Player OtherPlayer) SetPlayers((Deck FirstDeck, Deck SecondDeck) decks)
+    {
+        Player firstPlayer = new Player(decks.FirstDeck, _view);
+        Player secondPlayer = new Player(decks.SecondDeck, _view);
 
         InitializePlayerHands(firstPlayer, secondPlayer);
 
         Player startingPlayer = DetermineStartingPlayer(firstPlayer, secondPlayer);
         Player otherPlayer = (startingPlayer == firstPlayer) ? secondPlayer : firstPlayer;
 
-        result.FirstPlayer = startingPlayer;
-        result.SecondPlayer = otherPlayer;
-        result.IsSuccess = true;
-
-        return result;
+        return (startingPlayer, otherPlayer);
     }
-
-
-    private Deck GetAndValidateDeck()
+    private Deck GetAndValidateDeck(View view)
     {
-        Dictionary<string, Superstar> allAvailableSuperstars = SuperstarLoader.LoadSuperstarsIntoDictionary();
+        Dictionary<string, Superstar> allAvailableSuperstars = SuperstarLoader.LoadSuperstarsIntoDictionary(view);
         string deckPath = _view.AskUserToSelectDeck(_deckFolder);
         Deck deck = DeckLoader.LoadDeck(deckPath);
-        return DeckValidator.IsValidDeck(deck, allAvailableSuperstars).IsValid ? deck : null;
-    }
-
-    private Deck? InitializeFirstDeck()
-    {
-        Deck? firstDeck = GetAndValidateDeck();
-        if (firstDeck == null)
+    
+        if (!DeckValidator.IsValidDeck(deck, allAvailableSuperstars).IsValid)
         {
-            _view.SayThatDeckIsInvalid();
+            throw new InvalidDeckException();
         }
-        return firstDeck;
+        return deck;
     }
-
-    private Deck? InitializeSecondDeck()
+    private Deck InitializeDeck(View view)
     {
-        Deck? secondDeck = GetAndValidateDeck();
-        if (secondDeck == null)
-        {
-            _view.SayThatDeckIsInvalid();
-        }
-        return secondDeck;
+        return GetAndValidateDeck(view);
     }
-
     private Player DetermineStartingPlayer(Player firstPlayer, Player secondPlayer)
     {
-        return firstPlayer.Superstar.SuperstarValue >= secondPlayer.Superstar.SuperstarValue ? firstPlayer : secondPlayer;
-    }
+        Superstar firstPlayerSuperstar = firstPlayer.Superstar;
+        Superstar secondPlayerSuperstar = secondPlayer.Superstar;
 
+        int firstPlayerSuperstarValue = firstPlayerSuperstar.SuperstarValue;
+        int secondPlayerSuperstarValue = secondPlayerSuperstar.SuperstarValue;
+
+        return firstPlayerSuperstarValue >= secondPlayerSuperstarValue ? firstPlayer : secondPlayer;
+    }
     private void InitializePlayerHands(Player firstPlayer, Player secondPlayer)
     {
-        for (int i = 0; i < firstPlayer.Superstar.HandSize; i++) firstPlayer.DrawCard();
+        Superstar firstPlayerSuperstar = firstPlayer.Superstar;
+        Superstar secondPlayerSuperstar = secondPlayer.Superstar;
         
-        for (int i = 0; i < secondPlayer.Superstar.HandSize; i++) secondPlayer.DrawCard();
+        int firstPlayerHandSize = firstPlayerSuperstar.HandSize;
+        int secondPlayerHandSize = secondPlayerSuperstar.HandSize;
+
+        for (int i = 0; i < firstPlayerHandSize; i++) 
+        {
+            _playerActionsController.DrawCard(firstPlayer);
+        }
+        
+        for (int i = 0; i < secondPlayerHandSize; i++) 
+        {
+            _playerActionsController.DrawCard(secondPlayer);
+        }
     }
 }

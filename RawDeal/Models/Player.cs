@@ -1,17 +1,47 @@
-using RawDeal.Models;
 using RawDealView;
 using RawDealView.Formatters;
-
+using RawDeal.Models.Superstars;
+namespace RawDeal.Models;
 public class Player
 {
-    public Superstar Superstar { get; private set; } = new Superstar();
     private List<Card> Hand { get; } = new List<Card>();
     private List<Card> Arsenal { get; } = new List<Card>();
     private List<Card> Ringside { get; } = new List<Card>();
     private List<Card> RingArea { get; } = new List<Card>();
     private readonly View _view;
+    private readonly int _baseFortitude = 0;
+    
+    public Superstar Superstar { get; private set; }
 
-    public int Fortitude => RingArea.Sum(card => int.Parse(card.Damage));
+    public Player(Deck deck, View view)
+    {
+        Superstar = deck.Superstar;
+        _view = view;
+        List<Card> deckCards = deck.Cards;
+        Arsenal.AddRange(deckCards);
+    }
+
+    public int Fortitude 
+    {
+        get
+        {
+            int totalDamage = CalculateTotalDamageFromRingArea();
+            int totalFortitude = _baseFortitude + totalDamage;
+            return totalFortitude;
+        }
+    }
+
+    private int CalculateTotalDamageFromRingArea()
+    {
+        int totalDamage = 0;
+        foreach (Card card in RingArea)
+        {
+            int cardDamage = int.Parse(card.Damage);
+            totalDamage += cardDamage;
+        }
+        return totalDamage;
+    }
+
 
     public List<Card> GetHand()
     {
@@ -28,11 +58,9 @@ public class Player
         return Ringside;
     }
 
-    public Player(Deck deck, View view)
+    public List<Card> GetArsenal()
     {
-        Superstar = deck.Superstar;
-        Arsenal.AddRange(deck.Cards);
-        _view = view;
+        return Arsenal;
     }
 
     public List<string> GetFormattedCardsInfo(List<Card> cards)
@@ -40,47 +68,14 @@ public class Player
         return cards.Select(Formatter.CardToString).ToList();
     }
 
-    public PlayerInfo ToPlayerInfo()
+    public PlayerInfo PlayerInfo()
     {
-        return new PlayerInfo(Superstar.Name, Fortitude, Hand.Count, Arsenal.Count);
+        string playerName = Superstar.Name;
+        int playerFortitude = Fortitude;
+        int handCount = Hand.Count;
+        int arsenalCount = Arsenal.Count;
+        return new PlayerInfo(playerName, playerFortitude, handCount, arsenalCount);
     }
-
-    public void DrawCard()
-    {
-        if (Arsenal.Any())
-        {
-            Card lastCard = Arsenal.Last();
-            Arsenal.Remove(lastCard);
-            Hand.Add(lastCard);
-        }
-    }
-
-    public bool ReceiveDamage(int damageAmount)
-    {
-        for (int i = 0; i < damageAmount; i++)
-        {
-            if (Arsenal.Any())
-            {
-                Card lastCard = Arsenal.Last();
-                Arsenal.Remove(lastCard);
-                Ringside.Add(lastCard);
-                _view.ShowCardOverturnByTakingDamage(lastCard.ToString(), i + 1, damageAmount);
-            }
-            else
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public void ApplyDamage(int cardIndex)
-    {
-        Card cardToApply = Hand[cardIndex];
-        Hand.RemoveAt(cardIndex);
-        RingArea.Add(cardToApply);
-    }
-
     public bool HasEmptyArsenal()
     {
         return !Arsenal.Any();

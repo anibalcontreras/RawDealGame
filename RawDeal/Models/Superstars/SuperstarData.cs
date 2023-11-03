@@ -1,6 +1,5 @@
-namespace RawDeal.Models;
-
-public class Superstar
+namespace RawDeal.Models.Superstars;
+public class SuperstarData
 {
     public string Name { get; set; } = string.Empty;
     public string Logo { get; set; } = string.Empty;
@@ -9,4 +8,3 @@ public class Superstar
     public string SuperstarAbility { get; set; } = string.Empty;
     public Card SuperstarCard { get; set; } = new Card();
 }
-

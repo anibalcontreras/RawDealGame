@@ -1,19 +1,19 @@
 using RawDealView;
-
+using RawDeal.Models;
+using RawDeal.Controllers;
 namespace RawDeal;
 public class Game
 {
     private readonly View _view;
     private readonly string _deckFolder;
     private readonly GameInitializer _gameInitializer;
-    private readonly PlayerTurn _playerTurn;
-
+    private readonly GameplayController _gameplayController;
     public Game(View view, string deckFolder)
     {
         _view = view;
         _deckFolder = deckFolder;
         _gameInitializer = new GameInitializer(view, deckFolder);
-        _playerTurn = new PlayerTurn(view);
+        _gameplayController = new GameplayController(view);
     }
     private GameInitializationResult InitializeGame()
     {
@@ -31,15 +31,15 @@ public class Game
     {
         while (true)
         {
-            if (!PlayTurnAndCheckGameStatus(firstPlayer, secondPlayer))
+            if (!CheckGameStatus(firstPlayer, secondPlayer))
                 break;
 
-            if (!PlayTurnAndCheckGameStatus(secondPlayer, firstPlayer))
+            if (!CheckGameStatus(secondPlayer, firstPlayer))
                 break;
         }
     }
-    private bool PlayTurnAndCheckGameStatus(Player currentPlayer, Player opponentPlayer)
+    private bool CheckGameStatus(Player currentPlayer, Player opponentPlayer)
     {
-        return _playerTurn.PlayTurn(currentPlayer, opponentPlayer);
+        return _gameplayController.PlayTurn(currentPlayer, opponentPlayer);
     }
 }
