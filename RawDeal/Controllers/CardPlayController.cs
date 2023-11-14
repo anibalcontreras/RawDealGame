@@ -3,43 +3,38 @@ using RawDeal.Models;
 using RawDeal.Exceptions;
 using RawDeal.Models.Effects;
 using RawDeal.Interfaces;
+using RawDeal.Models.Reversals;
 using RawDeal.Utilities;
 namespace RawDeal.Controllers;
-public class CardPlayController : ISubject
+
+public class CardPlayController
 {
     private readonly View _view;
     private readonly EffectCatalog _effectCatalog;
-    private readonly List <IObserver> _observers = new List<IObserver>();
+    private readonly List<IObserver> _observers = new List<IObserver>();
+    private readonly EventManager _eventManager;
+    private readonly ReversalCatalog _reversalCatalog;
+    private readonly PlayerActionsController _playerActionsController;
     private Player CurrentPlayer { get; set; }
     private Player Opponent { get; set; }
     private List<Card> PlayableCards { get; set; }
     private int SelectedPlayIndex { get; set; }
-    public CardPlayController(View view)
+    
+    private int SelectedReversalIndex { get; set; }
+public CardPlayController(View view)
     {
         _view = view;
         _effectCatalog = new EffectCatalog(view);
-    }
-    public void RegisterObserver(IObserver observer)
-    {
-        _observers.Add(observer);
-    }
-    public void RemoveObserver(IObserver observer)
-    {
-        _observers.Remove(observer);
-    }
-    public void NotifyObservers(string message, Player player)
-    {
-        foreach (var observer in _observers)
-        {
-            observer.Update(message, player);
-        }
+        _eventManager = EventManager.GetInstance();
+        _reversalCatalog = new ReversalCatalog(view);
+        _playerActionsController = new PlayerActionsController(view);
     }
     public void HandlePlayCardAction(Player firstPlayer, Player secondPlayer)
     {
         InitializePlayers(firstPlayer, secondPlayer);
         if (AttemptToPlayCard())
         {
-            ExecuteCardPlay();
+            TryingExecuteCardPlay();
         }
     }
     private void InitializePlayers(Player firstPlayer, Player secondPlayer)
@@ -76,6 +71,8 @@ public class CardPlayController : ISubject
         List<Play> playablePlays = PlayUtility.GetPlayablePlays(CurrentPlayer.GetHand(), CurrentPlayer.Fortitude);
         return playablePlays[SelectedPlayIndex];
     }
+
+    
     private void ApplyCardEffect()
     {
         Card playedCard = GetPlayedCard();
@@ -85,12 +82,82 @@ public class CardPlayController : ISubject
         if (hasLost)
             EndGame(CurrentPlayer);
     }
-    private void ExecuteCardPlay()
+    private void TryingExecuteCardPlay()
     {
         AnnounceAttemptToPlayCard();
-        AnnounceSuccessfulCardPlay();
-        ApplyCardEffect();
+        try
+        {
+            CheckIfIsPossibleToUseAReversal();
+            AnnounceSuccessfulCardPlay();
+            ApplyCardEffect();
+        } catch (CardReversedButGameContinuesException)
+        {
+            _eventManager.Notify("CardReversedByHand", "CardReversedByHand", Opponent);
+        }
     }
+    
+    private void CheckIfIsPossibleToUseAReversal()
+    {
+        Card playedCard = GetPlayedCard();
+        playedCard.SetPlayedAs(GetPlayedAs());
+        List<Card> reversalsListCards = CanReverseDamageByHand(Opponent, playedCard);
+        List<String> formattedReversalCards = PlayUtility.GetFormattedReversalCards(reversalsListCards);
+        SelectedReversal(formattedReversalCards);
+        if (SelectedReversalIndex != -1)
+        {
+            Card reversalCard = reversalsListCards[SelectedReversalIndex];
+            
+            _view.SayThatPlayerReversedTheCard(Opponent.Superstar.Name, formattedReversalCards[SelectedReversalIndex]);
+            
+            Console.WriteLine("Se agrega de " + CurrentPlayer.Superstar.Name + " la carta " + playedCard.Title);
+            _playerActionsController.AddCardToRingsideDueReversedByHand(CurrentPlayer, playedCard);
+            
+            Console.WriteLine("Se remueve de " + Opponent.Superstar.Name + " la carta " + reversalCard.Title);
+            _playerActionsController.RemoveCardFromHandDueToReversal(Opponent, reversalCard);
+            
+            if (CurrentPlayer.HasEmptyArsenal())
+            {
+                EndGame(Opponent);
+            }
+            throw new CardReversedButGameContinuesException();
+        }
+    }
+    
+    
+    private bool SelectedReversal(List<string> reversalCards)
+    {
+        SelectedReversalIndex = _view.AskUserToSelectAReversal(Opponent.Superstar.Name, reversalCards);
+        return SelectedReversalIndex != -1;
+    }
+    
+    private List<Card> CanReverseDamageByHand(Player player, Card playedCard)
+    {
+
+        List<Card> cardsInHand = player.GetHand();
+        List<Card> possibleReversals = new List<Card>();
+
+        foreach (Card cardInHand in cardsInHand)
+        {
+            if (IsPossibleToUseReversal(cardInHand))
+            {
+                Reversal reversalCard = _reversalCatalog.GetReversalBy(playedCard.Title);
+                if (reversalCard.CanReverseFromHand(playedCard, cardInHand, player))
+                {
+                    possibleReversals.Add(cardInHand);
+                }
+                
+            }
+        }
+        return possibleReversals;
+    }
+    
+    
+    private bool IsPossibleToUseReversal(Card cardInHand)
+    {
+        Reversal potentialReversal = _reversalCatalog.GetReversalBy(cardInHand.Title);
+        return potentialReversal != null;
+    }
+        
     private void AnnounceAttemptToPlayCard()
     {
         string selectedPlay =
@@ -103,6 +170,6 @@ public class CardPlayController : ISubject
     }
     private void EndGame(Player winningPlayer)
     {
-        NotifyObservers("EndGame", winningPlayer);
+        _eventManager.Notify("EndGame", "EndGame", winningPlayer);
     }
 }

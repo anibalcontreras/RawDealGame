@@ -3,6 +3,12 @@ using RawDeal.Models;
 namespace RawDeal.Utilities;
 public static class PlayUtility
 {
+    public static List<string> GetFormattedReversalCards(List<Card> cards)
+    {
+        List<Play> reversalPlays = ConvertCardsToPlays(cards);
+        return reversalPlays.Select(Formatter.PlayToString).ToList();
+    }
+    
     public static List<string> GetFormattedPlayableCards(List<Card> cards, int playerFortitude)
     {
         List<Play> playablePlays = GetPlayablePlays(cards, playerFortitude);
@@ -13,6 +19,7 @@ public static class PlayUtility
     {
         return ConvertCardsToPlays(cards).Where(play => IsPlayable(play, playerFortitude)).ToList();
     }
+    
 
     private static bool IsPlayable(Play play, int playerFortitude)
     {
@@ -43,7 +50,6 @@ public static class PlayUtility
         {
             plays.AddRange(DivideCardByTypes(card));
         }
-    
         return plays;
     }
 
@@ -58,7 +64,6 @@ public static class PlayUtility
             if (playablePlaysForCard.Any())
                 playableCards.Add(card);
         }
-    
         return playableCards;
     }
     private static List<Play> DivideCardByTypes(Card card)

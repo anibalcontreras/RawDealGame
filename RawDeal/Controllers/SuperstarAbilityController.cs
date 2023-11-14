@@ -15,26 +15,32 @@ public class SuperstarAbilityController
     private bool CanActivateAbility(Player player)
     {
         Superstar playerSuperstar = player.Superstar;
-        return AbilityNotUsed(playerSuperstar) &&
-               AbilityActivationIsInMenu(playerSuperstar) &&
-               SuperstarCanUseAbility(playerSuperstar, player);
+        return AbilityActivationIsInMenu(playerSuperstar) &&
+               SuperstarCanUseAbility(playerSuperstar, player) &&
+               AbilityNotUsed(playerSuperstar);
     }
 
     private bool AbilityNotUsed(Superstar superstar)
     {
+        Console.WriteLine("AbilityNotUsed");
+        Console.WriteLine(!superstar.HasUsedAbility);
         return !superstar.HasUsedAbility;
     }
 
     private bool AbilityActivationIsInMenu(Superstar superstar)
     {
+        Console.WriteLine("AbilityActivationIsInMenu");
+        Console.WriteLine(superstar.ActivationMoment == AbilityActivation.InMenu);
         return superstar.ActivationMoment == AbilityActivation.InMenu;
     }
 
     private bool SuperstarCanUseAbility(Superstar superstar, Player player)
     {
+        Console.WriteLine("SuperstarCanUseAbility");
+        Console.WriteLine(superstar.CanUseAbility(player));
         return superstar.CanUseAbility(player);
     }
-
+    
     private void ActivateStartOfTurnAbility(Player firstPlayer, Player secondPlayer)
     {
         Superstar firstPlayerSuperstar = firstPlayer.Superstar;
@@ -70,8 +76,26 @@ public class SuperstarAbilityController
 
     public void ResetAbilityUsage(Player player)
     {
-        Superstar playerSuperstar = player.Superstar;
-        playerSuperstar.MarkAbilityAsUnused();
+        // Primero verifica si 'player' es null.
+        if (player == null)
+        {
+            Console.WriteLine("El jugador proporcionado es null y no se puede resetear su habilidad.");
+            return;
+        }
+        
+        // Luego verifica si 'Superstar' dentro de 'player' es null.
+        if (player.Superstar == null)
+        {
+            Console.WriteLine($"El Superstar del jugador {player.Superstar.Name} es null y no se puede resetear su habilidad.");
+            return;
+        }
+    
+        // Ahora es seguro resetear la habilidad.
+        player.Superstar.MarkAbilityAsUnused();
     }
-
+    
+    public void ActivateAbilityInMenu(Player firstPlayer, Player secondPlayer)
+    {
+        firstPlayer.Superstar.ActivateAbility(firstPlayer, secondPlayer, AbilityActivation.InMenu);
+    }
 }

@@ -47,7 +47,7 @@ public class Player
     {
         return Hand;
     }
-
+    
     public List<Card> GetRingArea()
     {
         return RingArea;

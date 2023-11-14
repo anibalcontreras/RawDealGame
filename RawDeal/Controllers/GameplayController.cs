@@ -16,22 +16,46 @@ public class GameplayController : IObserver
     private readonly SuperstarAbilityController _superstarAbilityController;
     private readonly CardPlayController _cardPlayController;
     private readonly CardDisplayController _cardDisplayController;
+
+    private readonly EventManager _eventManager;
+    
     public GameplayController(View view)
     {
         _view = view;
+        EventManager eventManager = EventManager.GetInstance();
         _playerActionsController = new PlayerActionsController(view);
-        _superstarAbilityController = new SuperstarAbilityController(view);
         _cardPlayController = new CardPlayController(view);
-        _cardPlayController.RegisterObserver(this);
+        eventManager.Subscribe("CardReversedByDeck", this);
+        eventManager.Subscribe("EndGame", this);
+        eventManager.Subscribe("CardReversedByHand", this);
+        
+        _superstarAbilityController = new SuperstarAbilityController(view);
         _cardDisplayController = new CardDisplayController(view);
     }
     public void Update(string message, Player player)
     {
-        if (message == "EndGame")
+        switch (message)
         {
-            EndGame(player);
+            case "CardReversedByDeck":
+                _superstarAbilityController.ResetAbilityUsage(Opponent);
+                _superstarAbilityController.ResetAbilityUsage(CurrentPlayer);
+                // Chequear acá si quedan o no cartas en el arsenal o algo asi uwu
+                _continueTurn = false;
+                break;
+            case "EndGame":
+                EndGame(player);
+                break;
+            case "CardReversedByHand":
+                _superstarAbilityController.ResetAbilityUsage(Opponent);
+                _superstarAbilityController.ResetAbilityUsage(CurrentPlayer);
+                _continueTurn = false;
+                break;
+            default:
+                Console.WriteLine($"Mensaje no reconocido: {message}");
+                break;
         }
     }
+
     public bool PlayTurn(Player firstPlayer, Player secondPlayer)
     {
         StartPlayerTurn(firstPlayer);
@@ -49,9 +73,12 @@ public class GameplayController : IObserver
         while (_continueTurn)
         {
             _continueTurn = HandleTurnActions(firstPlayer, secondPlayer);
+            CurrentPlayer = firstPlayer;
+            Opponent = secondPlayer;
         }
         _continueTurn = true;
     }
+    
     private bool HandleTurnActions(Player firstPlayer, Player secondPlayer)
     {
         _view.ShowGameInfo(firstPlayer.PlayerInfo(), secondPlayer.PlayerInfo());
@@ -65,11 +92,12 @@ public class GameplayController : IObserver
                 _cardDisplayController.HandleShowCardsActions(firstPlayer, secondPlayer);
                 break;
             case NextPlay.PlayCard:
+                _playerActionsController.InitializePlayers(firstPlayer, secondPlayer);
                 _cardPlayController.HandlePlayCardAction(firstPlayer, secondPlayer);
-                if (!GameOn || !_continueTurn) return false;
+                if (!GameOn) return false;
                 break;
             case NextPlay.UseAbility:
-                firstPlayer.Superstar.ActivateAbility(firstPlayer, secondPlayer, AbilityActivation.InMenu);
+                _superstarAbilityController.ActivateAbilityInMenu(firstPlayer, secondPlayer);
                 break;
             case NextPlay.EndTurn:
                 HandleEndTurnAction(firstPlayer, secondPlayer);
@@ -98,8 +126,8 @@ public class GameplayController : IObserver
     }
     private void EndGame(Player winningPlayer)
     {
+        _view.CongratulateWinner(winningPlayer.Superstar.Name);
         TurnOn = false;
         GameOn = false;
-        _view.CongratulateWinner(winningPlayer.Superstar.Name);
     }
 }

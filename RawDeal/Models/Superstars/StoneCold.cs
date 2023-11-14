@@ -23,6 +23,12 @@ public class StoneCold : Superstar
         }
     }
 
+    public override bool CanUseAbility(Player player)
+    {
+        List<Card> arsenal = player.GetArsenal();
+        return !HasUsedAbility && arsenal.Count > 0;
+    }
+
     private void UseAbility(Player player, Player opponent)
     {
         AnnounceAbilityUsage(player);

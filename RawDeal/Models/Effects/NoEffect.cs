@@ -1,4 +1,5 @@
 using RawDeal.Controllers;
+using RawDeal.Exceptions;
 using RawDealView;
 namespace RawDeal.Models.Effects;
 
@@ -13,11 +14,19 @@ public class NoEffect : Effect
     {
         int damage = CalculateCardDamage(playedCard);
         AnnounceDamageToOpponent(damage, opponent);
-        bool hasLost = ApplyCardDamageToOpponent(damage, opponent);
-        if (!hasLost)
+        try
+        {
+            bool hasLost = ApplyCardDamageToOpponent(damage, opponent, playedCard, player);
             ApplyCardEffect(player, playedCard);
-        return hasLost;
+            return hasLost;
+        }
+        catch (CardReversedButGameContinuesException)
+        {
+            ApplyCardEffect(player, playedCard);
+            return false;
+        }
     }
+
     private int CalculateCardDamage(Card card)
     {
         return int.Parse(card.Damage);
@@ -30,10 +39,11 @@ public class NoEffect : Effect
             _view.SayThatSuperstarWillTakeSomeDamage(opponent.Superstar.Name, actualDamage);
         }
     }
-    private bool ApplyCardDamageToOpponent(int cardDamage, Player opponent)
+    // VEr bien estos nombres que entre player y opponent se confunden
+    private bool ApplyCardDamageToOpponent(int cardDamage, Player opponent, Card playedCard, Player player)
     {
         int actualDamage = opponent.Superstar.CalculateDamage(cardDamage);
-        return _playerActionsController.ReceiveDamage(opponent, actualDamage);
+        return _playerActionsController.ReceiveDamage(opponent, actualDamage, playedCard, player);
     }
     private void ApplyCardEffect(Player player, Card playedCard)
     {

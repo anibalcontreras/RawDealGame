@@ -22,7 +22,7 @@ public class Kane : Superstar
 
             _view.SayThatPlayerIsGoingToUseHisAbility(playerName, superstarAbility);
             _view.SayThatSuperstarWillTakeSomeDamage(opponentName, 1);
-            _playerActionsController.ReceiveDamage(opponent, 1);
+            _playerActionsController.ReceiveDamage(opponent, 1, null, player);
             MarkAbilityAsUsed();
         }
     }

@@ -27,9 +27,28 @@ public class Card : IViewableCardInfo
         };
     }
     
+    public string GetTypes()
+    {
+        return string.Join(", ", Types);
+    }
+    
+    public string GetSubtypes()
+    {
+        return string.Join(", ", Subtypes);
+    }
+    
+    public string PlayedAs { get; set; } = string.Empty;
+    
+    // Añade un método que permita establecer PlayedAs cuando juegas la carta.
+    public void SetPlayedAs(string playedAs)
+    {
+        PlayedAs = playedAs;
+    }
+    
     public enum CardType
     {
         Maneuver,
-        Action
+        Action,
+        Reversal,
     }
 }
