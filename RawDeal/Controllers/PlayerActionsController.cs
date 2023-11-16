@@ -10,7 +10,6 @@ public class PlayerActionsController
     private readonly ReversalCatalog _reversalCatalog;
     private readonly List <IObserver> _observers = new List<IObserver>();
     private readonly EventManager _eventManager;
-    
     private Player CurrentPlayer { get; set; }
     private Player Opponent { get; set; }
     
@@ -75,38 +74,63 @@ public class PlayerActionsController
         return false;
     }
     
-    private void CanReverseDamageByDeck(Player player, Card lastCard, Card playedCard, Player opponent, int i)
+    private void CanReverseDamageByDeck(Player player, Card lastCard, Card playedCard, Player opponent, int index)
     {
-        if (IsPossibleToUseReversal(lastCard))
+        try
         {
-            Reversal reversalCard = _reversalCatalog.GetReversalBy(lastCard.Title);
-            if (reversalCard.CanReverseFromDeck(lastCard, player, playedCard, opponent, i))
+            if (TryGetReversalForCard(lastCard, out Reversal reversalCard) && 
+                reversalCard.CanReverseFromDeck(lastCard, player, playedCard))
             {
-                Console.WriteLine(player.GetArsenal().Count);
-                if (player.GetArsenal().Count == 0)
-                {
-                    Console.WriteLine("Estas aca 1");
-                    _eventManager.Notify("EndGame", "EndGame", opponent);
-                }
-                else
-                {
-                    _eventManager.Notify("CardReversedByDeck", "CardReversedByDeck", player);    
-                }
-                if (int.Parse(playedCard.StunValue) > 0 && (int.Parse(playedCard.Damage) - 1) > i)
-                {
-                    int selectedNumberOfCards = _view.AskHowManyCardsToDrawBecauseOfStunValue(opponent.Superstar.Name, int.Parse(playedCard.StunValue));
-                    DrawCardDueToStunValue(opponent, selectedNumberOfCards);
-                }
-                throw new CardReversedButGameContinuesException();
+                ProcessReversal(player, opponent, playedCard, index);
             }
         }
+        catch (KeyNotFoundException)
+        {
+            // Manejar el caso en el que no se encuentra el Reversal.
+            // Podrías simplemente continuar o registrar un mensaje de error, según lo requiera la lógica de tu aplicación.
+        }
+    }
+
+
+    private bool TryGetReversalForCard(Card card, out Reversal reversal)
+    {
+        // Usa el método TryGetReversalBy que devuelve un booleano y asigna el reversal a la variable de salida
+        return _reversalCatalog.TryGetReversalBy(card.Title, out reversal);
+    }
+
+
+    private void ProcessReversal(Player player, Player opponent, Card playedCard, int index)
+    {
+        NotifyEndGameIfNeeded(player, opponent);
+        NotifyCardReversal(player);
+        HandleStunValue(playedCard, opponent, index);
+        throw new CardReversedButGameContinuesException();
     }
     
-    private bool IsPossibleToUseReversal(Card reversalCard)
+
+    private void NotifyEndGameIfNeeded(Player player, Player opponent)
     {
-        Reversal potentialReversal = _reversalCatalog.GetReversalBy(reversalCard.Title);
-        return potentialReversal != null;
+        if (player.GetArsenal().Count == 0)
+        {
+            _eventManager.Notify("EndGame", "EndGame", opponent);
+        }
     }
+
+    private void NotifyCardReversal(Player player)
+    {
+        _eventManager.Notify("CardReversedByDeck", "CardReversedByDeck", player);
+    }
+
+    private void HandleStunValue(Card playedCard, Player opponent, int index)
+    {
+        if (int.TryParse(playedCard.StunValue, out int stunValue) && stunValue > 0 && 
+            int.TryParse(playedCard.Damage, out int damage) && (damage - 1) > index)
+        {
+            int selectedNumberOfCards = _view.AskHowManyCardsToDrawBecauseOfStunValue(opponent.Superstar.Name, stunValue);
+            DrawCardDueToStunValue(opponent, selectedNumberOfCards);
+        }
+    }
+
 
     public void ApplyDamage(Player player, int cardIndex)
     {

@@ -2,7 +2,6 @@ using RawDeal.Interfaces;
 using RawDealView;
 using RawDealView.Options;
 using RawDeal.Models;
-using RawDeal.Models.Superstars;
 namespace RawDeal.Controllers;
 public class GameplayController : IObserver
 {
@@ -37,23 +36,19 @@ public class GameplayController : IObserver
         switch (message)
         {
             case "CardReversedByDeck":
-                _superstarAbilityController.ResetAbilityUsage(Opponent);
-                _superstarAbilityController.ResetAbilityUsage(CurrentPlayer);
-                // Chequear acá si quedan o no cartas en el arsenal o algo asi uwu
-                _continueTurn = false;
+            case "CardReversedByHand":
+                HandleCardReversal();
                 break;
             case "EndGame":
                 EndGame(player);
                 break;
-            case "CardReversedByHand":
-                _superstarAbilityController.ResetAbilityUsage(Opponent);
-                _superstarAbilityController.ResetAbilityUsage(CurrentPlayer);
-                _continueTurn = false;
-                break;
-            default:
-                Console.WriteLine($"Mensaje no reconocido: {message}");
-                break;
         }
+    }
+    private void HandleCardReversal()
+    {
+        _superstarAbilityController.ResetAbilityUsage(Opponent);
+        _superstarAbilityController.ResetAbilityUsage(CurrentPlayer);
+        _continueTurn = false;
     }
 
     public bool PlayTurn(Player firstPlayer, Player secondPlayer)

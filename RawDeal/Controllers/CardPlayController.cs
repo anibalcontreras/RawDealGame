@@ -109,10 +109,8 @@ public CardPlayController(View view)
             
             _view.SayThatPlayerReversedTheCard(Opponent.Superstar.Name, formattedReversalCards[SelectedReversalIndex]);
             
-            Console.WriteLine("Se agrega de " + CurrentPlayer.Superstar.Name + " la carta " + playedCard.Title);
             _playerActionsController.AddCardToRingsideDueReversedByHand(CurrentPlayer, playedCard);
-            
-            Console.WriteLine("Se remueve de " + Opponent.Superstar.Name + " la carta " + reversalCard.Title);
+
             _playerActionsController.RemoveCardFromHandDueToReversal(Opponent, reversalCard);
             
             if (CurrentPlayer.HasEmptyArsenal())
@@ -131,32 +129,47 @@ public CardPlayController(View view)
     }
     
     private List<Card> CanReverseDamageByHand(Player player, Card playedCard)
+{
+    List<Card> cardsInHand = player.GetHand();
+    List<Card> possibleReversals = new List<Card>();
+
+    foreach (Card cardInHand in cardsInHand)
     {
-
-        List<Card> cardsInHand = player.GetHand();
-        List<Card> possibleReversals = new List<Card>();
-
-        foreach (Card cardInHand in cardsInHand)
+        try
         {
             if (IsPossibleToUseReversal(cardInHand))
             {
-                Reversal reversalCard = _reversalCatalog.GetReversalBy(playedCard.Title);
+                Reversal reversalCard = _reversalCatalog.GetReversalBy(cardInHand.Title);
                 if (reversalCard.CanReverseFromHand(playedCard, cardInHand, player))
                 {
                     possibleReversals.Add(cardInHand);
                 }
-                
             }
         }
-        return possibleReversals;
+        catch (KeyNotFoundException)
+        {
+            // Si no se encuentra el Reversal, simplemente continúa con la siguiente carta.
+            continue;
+        }
     }
-    
+    return possibleReversals;
+}
     
     private bool IsPossibleToUseReversal(Card cardInHand)
     {
-        Reversal potentialReversal = _reversalCatalog.GetReversalBy(cardInHand.Title);
-        return potentialReversal != null;
+        try
+        {
+            Console.WriteLine(cardInHand.Title);
+            Reversal potentialReversal = _reversalCatalog.GetReversalBy(cardInHand.Title);
+            Console.WriteLine(potentialReversal.GetType());
+            return true; // Si se encuentra el Reversal, retornar true
+        }
+        catch (KeyNotFoundException)
+        {
+            return false; // Si no se encuentra el Reversal, retornar false
+        }
     }
+
         
     private void AnnounceAttemptToPlayCard()
     {
