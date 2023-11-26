@@ -37,8 +37,8 @@ public class ReversalCatalog
         _reversals["Knee to the Gut"] = new ReversalStrikeSpecial(_view);
         _reversals["Elbow to the Face"] = new ReversalSpecial(_view);
         _reversals["Manager Interferes"] = new Heel(_view);
-        _reversals["Chyna Interferes"] = new Unique(_view);
-        _reversals["Clean Break"] = new Face(_view);
-        _reversals["Jockeying for Position"] = new SetUp(_view);
+        // _reversals["Chyna Interferes"] = new Unique(_view);
+        // _reversals["Clean Break"] = new Face(_view);
+        // _reversals["Jockeying for Position"] = new SetUp(_view);
     }
 }

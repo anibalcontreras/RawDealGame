@@ -5,7 +5,7 @@ public static class PlayUtility
 {
     public static List<string> GetFormattedReversalCards(List<Card> cards)
     {
-        List<Play> reversalPlays = ConvertCardsToPlays(cards);
+        List<Play> reversalPlays = ConvertCardsToPlaysForReversals(cards);
         return reversalPlays.Select(Formatter.PlayToString).ToList();
     }
     
@@ -17,7 +17,7 @@ public static class PlayUtility
 
     public static List<Play> GetPlayablePlays(List<Card> cards, int playerFortitude)
     {
-        return ConvertCardsToPlays(cards).Where(play => IsPlayable(play, playerFortitude)).ToList();
+        return ConvertCardsToPlaysForPlays(cards).Where(play => IsPlayable(play, playerFortitude)).ToList();
     }
     
 
@@ -42,13 +42,24 @@ public static class PlayUtility
         return cardFortitude <= playerFortitude;
     }
 
-    private static List<Play> ConvertCardsToPlays(List<Card> cards)
+    private static List<Play> ConvertCardsToPlaysForPlays(List<Card> cards)
     {
         List<Play> plays = new List<Play>();
     
         foreach (var card in cards)
         {
-            plays.AddRange(DivideCardByTypes(card));
+            plays.AddRange(DivideCardByTypesForPlays(card));
+        }
+        return plays;
+    }
+
+    private static List<Play> ConvertCardsToPlaysForReversals(List<Card> cards)
+    {
+        List<Play> plays = new List<Play>();
+    
+        foreach (var card in cards)
+        {
+            plays.AddRange(DivideCardByTypesForReversals(card));
         }
         return plays;
     }
@@ -66,7 +77,28 @@ public static class PlayUtility
         }
         return playableCards;
     }
-    private static List<Play> DivideCardByTypes(Card card)
+    private static List<Play> DivideCardByTypesForPlays(Card card)
+    {
+        List<Play> dividedPlays = new List<Play>();
+        // Definir los tipos de cartas permitidos para ser divididos
+        var allowedTypes = new HashSet<string> { "MANEUVER", "ACTION" };
+
+        foreach (string type in card.Types)
+        {
+            // Convertir a mayúsculas para hacer la comprobación insensible a mayúsculas
+            string upperType = type.ToUpper();
+            // Comprobar si el tipo actual está en la lista de tipos permitidos
+            if (allowedTypes.Contains(upperType))
+            {
+                Play newPlay = new Play(card, upperType);
+                dividedPlays.Add(newPlay);
+            }
+        }
+        return dividedPlays;
+    }
+
+    
+    private static List<Play> DivideCardByTypesForReversals(Card card)
     {
         List<Play> dividedPlays = new List<Play>();
 

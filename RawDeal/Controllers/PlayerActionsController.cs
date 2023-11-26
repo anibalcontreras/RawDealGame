@@ -12,6 +12,7 @@ public class PlayerActionsController
     private readonly EventManager _eventManager;
     private Player CurrentPlayer { get; set; }
     private Player Opponent { get; set; }
+    private readonly CardPlayController _cardPlayController;
     
     public PlayerActionsController(View view)
     {
@@ -47,7 +48,6 @@ public class PlayerActionsController
         for (int i = 0; i < stunValue; i++)
         {
             if (!arsenal.Any()) return;
-    
             Card lastCard = arsenal.Last();
             arsenal.Remove(lastCard);
             hand.Add(lastCard);
@@ -86,15 +86,11 @@ public class PlayerActionsController
         }
         catch (KeyNotFoundException)
         {
-            // Manejar el caso en el que no se encuentra el Reversal.
-            // Podrías simplemente continuar o registrar un mensaje de error, según lo requiera la lógica de tu aplicación.
         }
     }
-
-
+    
     private bool TryGetReversalForCard(Card card, out Reversal reversal)
     {
-        // Usa el método TryGetReversalBy que devuelve un booleano y asigna el reversal a la variable de salida
         return _reversalCatalog.TryGetReversalBy(card.Title, out reversal);
     }
 
@@ -136,9 +132,11 @@ public class PlayerActionsController
     {
         List<Card> hand = player.GetHand();
         List<Card> ringArea = player.GetRingArea();
-
         Card cardToApply = hand[cardIndex];
         hand.RemoveAt(cardIndex);
+        Console.WriteLine("Aqui el originalDamage es: " + cardToApply.OriginalDamage);
+        Console.WriteLine("Aqui el Card que se añade a RingArea es: " + cardToApply.Title);
+        Console.WriteLine("Por otro lado el damage es: " + cardToApply.Damage);
         ringArea.Add(cardToApply);
     }
 

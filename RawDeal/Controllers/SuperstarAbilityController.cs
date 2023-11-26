@@ -22,22 +22,16 @@ public class SuperstarAbilityController
 
     private bool AbilityNotUsed(Superstar superstar)
     {
-        Console.WriteLine("AbilityNotUsed");
-        Console.WriteLine(!superstar.HasUsedAbility);
         return !superstar.HasUsedAbility;
     }
 
     private bool AbilityActivationIsInMenu(Superstar superstar)
     {
-        Console.WriteLine("AbilityActivationIsInMenu");
-        Console.WriteLine(superstar.ActivationMoment == AbilityActivation.InMenu);
         return superstar.ActivationMoment == AbilityActivation.InMenu;
     }
 
     private bool SuperstarCanUseAbility(Superstar superstar, Player player)
     {
-        Console.WriteLine("SuperstarCanUseAbility");
-        Console.WriteLine(superstar.CanUseAbility(player));
         return superstar.CanUseAbility(player);
     }
     

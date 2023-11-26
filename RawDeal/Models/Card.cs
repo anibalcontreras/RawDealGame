@@ -9,6 +9,8 @@ public class Card : IViewableCardInfo
     public string Damage { get; set; } = string.Empty;
     public string StunValue { get; set; } = string.Empty;
     public string CardEffect { get; set; } = string.Empty;
+    
+    public string OriginalDamage { get; private set; }
     public override string ToString()
     {
         return Formatter.CardToString(this);
@@ -27,28 +29,39 @@ public class Card : IViewableCardInfo
         };
     }
     
-    public string GetTypes()
-    {
-        return string.Join(", ", Types);
-    }
-    
-    public string GetSubtypes()
-    {
-        return string.Join(", ", Subtypes);
-    }
-    
     public string PlayedAs { get; set; } = string.Empty;
     
-    // Añade un método que permita establecer PlayedAs cuando juegas la carta.
     public void SetPlayedAs(string playedAs)
     {
         PlayedAs = playedAs;
+    }
+    
+    public void TemporarilySetDamage(string damage)
+    {
+        Damage = damage;
+    }
+    
+    public void IncrementDamage(int damage, int damageToAdd)
+    {
+        int.TryParse(Damage, out damage);
+        damage += damageToAdd;
+        Damage = damage.ToString();
+    }
+    
+    public void DecrementDamage(int damage, int damageToSubtract)
+    {
+        int.TryParse(Damage, out damage);
+        damage -= damageToSubtract;
+        Damage = damage.ToString();
+    }
+    public void ResetDamageToOriginal()
+    {
+        Damage = OriginalDamage;
     }
     
     public enum CardType
     {
         Maneuver,
         Action,
-        Reversal,
     }
 }

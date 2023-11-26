@@ -6,6 +6,7 @@ namespace RawDeal.Models.Effects;
 public class NoEffect : Effect
 {
     private readonly PlayerActionsController _playerActionsController;
+    private readonly CardPlayController _cardPlayController;
     public NoEffect(View view) : base(view)
     {
         _playerActionsController = new PlayerActionsController(view);
@@ -17,6 +18,8 @@ public class NoEffect : Effect
         try
         {
             bool hasLost = ApplyCardDamageToOpponent(damage, opponent, playedCard, player);
+            Console.WriteLine("La playedCard es: " + playedCard.Title);
+            Console.WriteLine("El damage de esta carta es " + playedCard.Damage);
             ApplyCardEffect(player, playedCard);
             return hasLost;
         }
@@ -39,10 +42,10 @@ public class NoEffect : Effect
             _view.SayThatSuperstarWillTakeSomeDamage(opponent.Superstar.Name, actualDamage);
         }
     }
-    // VEr bien estos nombres que entre player y opponent se confunden
     private bool ApplyCardDamageToOpponent(int cardDamage, Player opponent, Card playedCard, Player player)
     {
         int actualDamage = opponent.Superstar.CalculateDamage(cardDamage);
+        
         return _playerActionsController.ReceiveDamage(opponent, actualDamage, playedCard, player);
     }
     private void ApplyCardEffect(Player player, Card playedCard)
