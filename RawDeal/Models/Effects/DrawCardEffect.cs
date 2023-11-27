@@ -1,5 +1,6 @@
 using RawDeal.Controllers;
 using RawDealView;
+
 namespace RawDeal.Models.Effects;
 public class DrawCardEffect: Effect
 {
@@ -8,11 +9,12 @@ public class DrawCardEffect: Effect
     {
         _playerActionsController = new PlayerActionsController(view);
     }
+    private const int NumberOfCardsToDraw = 1;
     public override bool Apply(Player player, Player opponent, Card card)
     {
-        _playerActionsController.DiscardCard(player, card); ;
+        _playerActionsController.DiscardCard(player, card);
         _playerActionsController.DrawCard(player);
-        _view.SayThatPlayerDrawCards(player.Superstar.Name, 1);
+        _view.SayThatPlayerDrawCards(player.Superstar.Name, NumberOfCardsToDraw);
         return false;
     }
 }

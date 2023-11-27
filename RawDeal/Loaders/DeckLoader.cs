@@ -1,3 +1,4 @@
+using RawDeal.Exceptions;
 using RawDeal.Models;
 using RawDealView;
 using RawDeal.Models.Superstars;
@@ -49,7 +50,7 @@ public static class DeckLoader
     {
         if (!File.Exists(path))
         {
-            throw new FileNotFoundException($"El archivo {path} no fue encontrado.");
+            throw new FileNotFoundException();
         }
     }
 
@@ -57,7 +58,7 @@ public static class DeckLoader
     {
         if (lines.Length == 0)
         {
-            throw new Exception($"El archivo {path} está vacío.");
+            throw new EmptyFileException();
         }
     }
 
@@ -80,7 +81,8 @@ public static class DeckLoader
         {
             return superstar;
         }
-        throw new Exception($"Superstar {name} no encontrado.");
+
+        throw new SuperstarNotFoundException();
     }
 
     private static void AddCardsToDeck(Deck deck, string[] cardLines)

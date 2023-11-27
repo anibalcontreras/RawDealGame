@@ -25,6 +25,6 @@ public class JsonLoader<T>
                 throw new DeserializationNullException();
             }
         }
-        throw new FileNotFoundException($"Cannot find file at {_dataPath}");
+        throw new EmptyFileException();
     }
 }

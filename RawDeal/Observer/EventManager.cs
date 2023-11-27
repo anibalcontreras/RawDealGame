@@ -1,21 +1,14 @@
 using RawDeal.Models;
 
-namespace RawDeal.Interfaces;
+namespace RawDeal.Observer;
 
 public class EventManager
 {
-    private static EventManager _instance;
+    private static EventManager _instance = new EventManager();
     private readonly Dictionary<string, List<IObserver>> _listeners = new Dictionary<string, List<IObserver>>();
 
     private EventManager() { }
-    public static EventManager GetInstance()
-    {
-        if (_instance == null)
-        {
-            _instance = new EventManager();
-        }
-        return _instance;
-    }
+    public static EventManager Instance => _instance;
     public void Subscribe(string eventType, IObserver listener)
     {
         if (!_listeners.ContainsKey(eventType))

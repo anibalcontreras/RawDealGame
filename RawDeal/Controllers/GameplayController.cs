@@ -1,4 +1,4 @@
-using RawDeal.Interfaces;
+using RawDeal.Observer;
 using RawDealView;
 using RawDealView.Options;
 using RawDeal.Models;
@@ -15,19 +15,17 @@ public class GameplayController : IObserver
     private readonly SuperstarAbilityController _superstarAbilityController;
     private readonly CardPlayController _cardPlayController;
     private readonly CardDisplayController _cardDisplayController;
-
     private readonly EventManager _eventManager;
     
     public GameplayController(View view)
     {
         _view = view;
-        EventManager eventManager = EventManager.GetInstance();
+        EventManager eventManager = EventManager.Instance;
         _playerActionsController = new PlayerActionsController(view);
         _cardPlayController = new CardPlayController(view);
         eventManager.Subscribe("CardReversedByDeck", this);
         eventManager.Subscribe("EndGame", this);
         eventManager.Subscribe("CardReversedByHand", this);
-        
         _superstarAbilityController = new SuperstarAbilityController(view);
         _cardDisplayController = new CardDisplayController(view);
     }
@@ -44,6 +42,7 @@ public class GameplayController : IObserver
                 break;
         }
     }
+    
     private void HandleCardReversal()
     {
         _superstarAbilityController.ResetAbilityUsage(Opponent);
@@ -58,11 +57,13 @@ public class GameplayController : IObserver
         ExecutePlayerActions(firstPlayer, secondPlayer);
         return GameOn;
     }
+    
     private void StartPlayerTurn(Player player)
     {
         _playerActionsController.DrawCard(player);
         _view.SayThatATurnBegins(player.Superstar.Name);
     }
+    
     private void ExecutePlayerActions(Player firstPlayer, Player secondPlayer)
     {
         while (_continueTurn)

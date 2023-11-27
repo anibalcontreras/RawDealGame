@@ -1,5 +1,5 @@
 using RawDeal.Exceptions;
-using RawDeal.Interfaces;
+using RawDeal.Observer;
 using RawDeal.Models;
 using RawDeal.Models.Reversals;
 using RawDealView;
@@ -18,7 +18,7 @@ public class PlayerActionsController
     {
         _view = view;
         _reversalCatalog = new ReversalCatalog(view);
-        _eventManager = EventManager.GetInstance();
+        _eventManager = EventManager.Instance;
     }
     
     public void InitializePlayers(Player firstPlayer, Player secondPlayer)
@@ -30,9 +30,7 @@ public class PlayerActionsController
     {
         List<Card> arsenal = player.GetArsenal();
         List<Card> hand = player.GetHand();
-
         if (!arsenal.Any()) return;
-
         Card lastCard = arsenal.Last();
         arsenal.Remove(lastCard);
         hand.Add(lastCard);
@@ -52,7 +50,6 @@ public class PlayerActionsController
             arsenal.Remove(lastCard);
             hand.Add(lastCard);
         }
-        
         _view.SayThatPlayerDrawCards(player.Superstar.Name, stunValue);
     }
 
@@ -60,15 +57,14 @@ public class PlayerActionsController
     {
         List<Card> arsenal = player.GetArsenal();
         List<Card> ringside = player.GetRingside();
-        
         for (int i = 0; i < damageAmount; i++)
         {
             if (!arsenal.Any()) return true;
-
             Card lastCard = arsenal.Last();
             arsenal.Remove(lastCard);
             ringside.Add(lastCard);
-            _view.ShowCardOverturnByTakingDamage(lastCard.ToString(), i + 1, damageAmount);
+            string lastCardTitle = lastCard.ToString();
+            _view.ShowCardOverturnByTakingDamage(lastCardTitle, i + 1, damageAmount);
             CanReverseDamageByDeck(player, lastCard, playedCard, opponent, i);
         }
         return false;
@@ -80,13 +76,10 @@ public class PlayerActionsController
         {
             if (TryGetReversalForCard(lastCard, out Reversal reversalCard) && 
                 reversalCard.CanReverseFromDeck(lastCard, player, playedCard))
-            {
                 ProcessReversal(player, opponent, playedCard, index);
-            }
         }
-        catch (KeyNotFoundException)
-        {
-        }
+        catch (ReversalNotFoundException)
+        {}
     }
     
     private bool TryGetReversalForCard(Card card, out Reversal reversal)
@@ -94,13 +87,12 @@ public class PlayerActionsController
         return _reversalCatalog.TryGetReversalBy(card.Title, out reversal);
     }
 
-
     private void ProcessReversal(Player player, Player opponent, Card playedCard, int index)
     {
         NotifyEndGameIfNeeded(player, opponent);
         NotifyCardReversal(player);
         HandleStunValue(playedCard, opponent, index);
-        throw new CardReversedButGameContinuesException();
+        throw new CardReversedException();
     }
     
 
@@ -119,24 +111,51 @@ public class PlayerActionsController
 
     private void HandleStunValue(Card playedCard, Player opponent, int index)
     {
-        if (int.TryParse(playedCard.StunValue, out int stunValue) && stunValue > 0 && 
-            int.TryParse(playedCard.Damage, out int damage) && (damage - 1) > index)
+        if (ShouldApplyStunValue(playedCard, index))
         {
-            int selectedNumberOfCards = _view.AskHowManyCardsToDrawBecauseOfStunValue(opponent.Superstar.Name, stunValue);
-            DrawCardDueToStunValue(opponent, selectedNumberOfCards);
+            int stunValue = GetStunValue(playedCard);
+            int cardsToDraw = AskNumberOfCardsToDraw(opponent.Superstar.Name, stunValue);
+            DrawCards(opponent, cardsToDraw);
         }
     }
 
+    private bool ShouldApplyStunValue(Card playedCard, int index)
+    {
+        return HasStunValue(playedCard) && IsDamageIndexApplicable(playedCard, index);
+    }
 
+    private bool HasStunValue(Card playedCard)
+    {
+        return int.TryParse(playedCard.StunValue, out int stunValue) && stunValue > 0;
+    }
+
+    private bool IsDamageIndexApplicable(Card playedCard, int index)
+    {
+        return int.TryParse(playedCard.Damage, out int damage) && (damage - 1) > index;
+    }
+
+    private int GetStunValue(Card playedCard)
+    {
+        int.TryParse(playedCard.StunValue, out int stunValue);
+        return stunValue;
+    }
+
+    private int AskNumberOfCardsToDraw(string superstarName, int stunValue)
+    {
+        return _view.AskHowManyCardsToDrawBecauseOfStunValue(superstarName, stunValue);
+    }
+
+    private void DrawCards(Player opponent, int numberOfCards)
+    {
+        DrawCardDueToStunValue(opponent, numberOfCards);
+    }
+    
     public void ApplyDamage(Player player, int cardIndex)
     {
         List<Card> hand = player.GetHand();
         List<Card> ringArea = player.GetRingArea();
         Card cardToApply = hand[cardIndex];
         hand.RemoveAt(cardIndex);
-        Console.WriteLine("Aqui el originalDamage es: " + cardToApply.OriginalDamage);
-        Console.WriteLine("Aqui el Card que se añade a RingArea es: " + cardToApply.Title);
-        Console.WriteLine("Por otro lado el damage es: " + cardToApply.Damage);
         ringArea.Add(cardToApply);
     }
 
@@ -180,5 +199,4 @@ public class PlayerActionsController
         RemoveCardFromHand(player, card);
         AddCardToRingArea(player, card);
     }
-    
 }

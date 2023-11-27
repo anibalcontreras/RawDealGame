@@ -20,7 +20,6 @@ public static class PlayUtility
         return ConvertCardsToPlaysForPlays(cards).Where(play => IsPlayable(play, playerFortitude)).ToList();
     }
     
-
     private static bool IsPlayable(Play play, int playerFortitude)
     {
         bool cardTypeIsPlayable = CardTypeIsPlayable(play);
@@ -30,8 +29,8 @@ public static class PlayUtility
 
     private static bool CardTypeIsPlayable(Play play)
     {
-        string cardTypeManeuver = Card.CardType.Maneuver.ToString().ToUpper();
-        string cardTypeAction = Card.CardType.Action.ToString().ToUpper();
+        string cardTypeManeuver = CardType.Maneuver.ToString().ToUpper();
+        string cardTypeAction = CardType.Action.ToString().ToUpper();
         List<string> playableTypes = new List<string> { cardTypeManeuver, cardTypeAction };
         return play.CardInfo.Types.Any(type => playableTypes.Contains(type.ToUpper()));
     }
@@ -45,7 +44,6 @@ public static class PlayUtility
     private static List<Play> ConvertCardsToPlaysForPlays(List<Card> cards)
     {
         List<Play> plays = new List<Play>();
-    
         foreach (var card in cards)
         {
             plays.AddRange(DivideCardByTypesForPlays(card));
@@ -56,7 +54,6 @@ public static class PlayUtility
     private static List<Play> ConvertCardsToPlaysForReversals(List<Card> cards)
     {
         List<Play> plays = new List<Play>();
-    
         foreach (var card in cards)
         {
             plays.AddRange(DivideCardByTypesForReversals(card));
@@ -67,7 +64,6 @@ public static class PlayUtility
     public static List<Card> GetPlayableCards(List<Card> cards, int playerFortitude)
     {
         List<Card> playableCards = new List<Card>();
-    
         foreach (var card in cards)
         {
             List<Card> singleCardList = new List<Card> { card };
@@ -80,28 +76,21 @@ public static class PlayUtility
     private static List<Play> DivideCardByTypesForPlays(Card card)
     {
         List<Play> dividedPlays = new List<Play>();
-        // Definir los tipos de cartas permitidos para ser divididos
-        var allowedTypes = new HashSet<string> { "MANEUVER", "ACTION" };
-
+        var allowedTypes = new HashSet<CardType> { CardType.Maneuver, CardType.Action };
         foreach (string type in card.Types)
         {
-            // Convertir a mayúsculas para hacer la comprobación insensible a mayúsculas
-            string upperType = type.ToUpper();
-            // Comprobar si el tipo actual está en la lista de tipos permitidos
-            if (allowedTypes.Contains(upperType))
+            if (Enum.TryParse(type, true, out CardType cardType) && allowedTypes.Contains(cardType))
             {
-                Play newPlay = new Play(card, upperType);
+                Play newPlay = new Play(card, type.ToUpper());
                 dividedPlays.Add(newPlay);
             }
         }
         return dividedPlays;
     }
-
     
     private static List<Play> DivideCardByTypesForReversals(Card card)
     {
         List<Play> dividedPlays = new List<Play>();
-
         foreach (string type in card.Types)
         {
             Play newPlay = new Play(card, type.ToUpper());

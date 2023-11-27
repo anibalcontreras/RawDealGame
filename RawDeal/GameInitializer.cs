@@ -36,7 +36,6 @@ public class GameInitializer
         {
             _view.SayThatDeckIsInvalid();
         }
-
         return result;
     }
     private (Player StartingPlayer, Player OtherPlayer) SetPlayers((Deck FirstDeck, Deck SecondDeck) decks)
@@ -51,22 +50,27 @@ public class GameInitializer
 
         return (startingPlayer, otherPlayer);
     }
-    private Deck GetAndValidateDeck(View view)
+    private Deck GetDeck(View view)
     {
-        Dictionary<string, Superstar> allAvailableSuperstars = SuperstarLoader.LoadSuperstarsIntoDictionary(view);
-        string deckPath = _view.AskUserToSelectDeck(_deckFolder);
-        Deck deck = DeckLoader.LoadDeck(deckPath);
-    
-        if (!DeckValidator.IsValidDeck(deck, allAvailableSuperstars).IsValid)
-        {
-            throw new InvalidDeckException();
-        }
-        return deck;
+        string deckPath = view.AskUserToSelectDeck(_deckFolder);
+        return DeckLoader.LoadDeck(deckPath);
     }
+
+    private void ValidateDeck(Deck deck)
+    {
+        Dictionary<string, Superstar> allAvailableSuperstars = SuperstarLoader.LoadSuperstarsIntoDictionary(_view);
+        var validationResult = DeckValidator.IsValidDeck(deck, allAvailableSuperstars);
+        if (!validationResult.IsValid)
+            throw new InvalidDeckException();
+    }
+
     private Deck InitializeDeck(View view)
     {
-        return GetAndValidateDeck(view);
+        Deck deck = GetDeck(view);
+        ValidateDeck(deck);
+        return deck;
     }
+
     private Player DetermineStartingPlayer(Player firstPlayer, Player secondPlayer)
     {
         Superstar firstPlayerSuperstar = firstPlayer.Superstar;

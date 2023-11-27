@@ -18,12 +18,10 @@ public class NoEffect : Effect
         try
         {
             bool hasLost = ApplyCardDamageToOpponent(damage, opponent, playedCard, player);
-            Console.WriteLine("La playedCard es: " + playedCard.Title);
-            Console.WriteLine("El damage de esta carta es " + playedCard.Damage);
             ApplyCardEffect(player, playedCard);
             return hasLost;
         }
-        catch (CardReversedButGameContinuesException)
+        catch (CardReversedException)
         {
             ApplyCardEffect(player, playedCard);
             return false;
@@ -50,7 +48,18 @@ public class NoEffect : Effect
     }
     private void ApplyCardEffect(Player player, Card playedCard)
     {
-        int indexOfCardInHand = player.GetHand().FindIndex(card => ReferenceEquals(card, playedCard));
-        _playerActionsController.ApplyDamage(player, indexOfCardInHand);
+        int cardIndex = FindIndexOfPlayedCardInHand(player, playedCard);
+        if (cardIndex != -1)
+            ApplyDamageUsingCardIndex(player, cardIndex);
+    }
+
+    private int FindIndexOfPlayedCardInHand(Player player, Card playedCard)
+    {
+        return player.GetHand().FindIndex(card => ReferenceEquals(card, playedCard));
+    }
+
+    private void ApplyDamageUsingCardIndex(Player player, int cardIndex)
+    {
+        _playerActionsController.ApplyDamage(player, cardIndex);
     }
 }

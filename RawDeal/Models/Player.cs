@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using RawDealView;
 using RawDealView.Formatters;
 using RawDeal.Models.Superstars;
@@ -37,26 +36,16 @@ public class Player
         int totalDamage = 0;
         foreach (Card card in RingArea)
         {
-            // Intenta convertir el Damage a un entero y sumarlo al total.
-            // Si no es un número, se suma 0.
             bool isParsed = int.TryParse(card.Damage, out int cardDamage);
             if (isParsed)
-            {
                 totalDamage += cardDamage;
-            }
             else
-            {
-                // Si no es un número válido, se asume que el daño es 0.
-                // Esto manejará el caso de "#" o cualquier otro valor no entero.
                 totalDamage += 0;
-            }
         }
+
         return totalDamage;
     }
-
-
-
-
+    
     public List<Card> GetHand()
     {
         return Hand;

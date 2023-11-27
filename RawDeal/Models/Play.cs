@@ -10,6 +10,5 @@ public class Play : IViewablePlayInfo
         PlayedAs = playedAs;
     }
     public IViewableCardInfo CardInfo { get; }
-
     public string PlayedAs { get; }
 }

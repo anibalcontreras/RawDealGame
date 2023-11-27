@@ -3,15 +3,41 @@ namespace RawDeal.Models.Reversals;
 
 public abstract class Reversal
 {
-    protected readonly View _view;
+    private readonly View _view;
     protected Reversal(View view)
     {
         _view = view;
     }
     
-    public abstract bool CanReverseFromDeck(Card reversalCard, Player player, Card playedCard);
-    public abstract bool CanReverseFromHand(Card playedCard, Card cardInHand, Player player);
-    protected abstract bool IsReversalInHand(Card cardInHand, Player player);
-    protected abstract bool ReversalCanTargetPlayedCard(Card reversalCard, Card playedCard);
-    protected abstract bool PlayerHasSufficientFortitude(Card reversalCard, Player player);
+    public bool CanReverseFromDeck(Card reversalCard, Player player, Card playedCard)
+    {
+        if (ReversalCanTargetPlayedCard(playedCard) &&
+            PlayerHasSufficientFortitude(reversalCard, player))
+        {
+            _view.SayThatCardWasReversedByDeck(player.Superstar.Name);
+            return true;
+        }
+        return false;
+    }
+    
+    public bool CanReverseFromHand(Card playedCard, Card cardInHand, Player player)
+    {
+        return IsReversalInHand(cardInHand, player) &&
+               ReversalCanTargetPlayedCard(playedCard) &&
+               PlayerHasSufficientFortitude(cardInHand, player);
+    }
+    
+    private bool IsReversalInHand(Card cardInHand, Player player)
+    {
+        return player.GetHand().Contains(cardInHand);
+    }
+    
+    private bool PlayerHasSufficientFortitude(Card reversalCard, Player player)
+    {
+        if (int.TryParse(reversalCard.Fortitude, out int reversalFortitude))
+            return player.Fortitude >= reversalFortitude;
+        return false;
+    }
+    
+    protected abstract bool ReversalCanTargetPlayedCard(Card playedCard);
 }

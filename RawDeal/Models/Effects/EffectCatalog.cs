@@ -6,7 +6,7 @@ public class EffectCatalog
     private readonly Dictionary<string, Effect> _effects = new Dictionary<string, Effect>();
     public Effect GetEffectBy(string cardTitle, string playType)
     {
-        string cardPlayType = Card.CardType.Maneuver.ToString().ToUpper();
+        string cardPlayType = CardType.Maneuver.ToString().ToUpper();
         if (IsHybridCard(cardTitle) && playType == cardPlayType)
         {
             return new NoEffect(_view);

@@ -2,6 +2,8 @@ using RawDealView;
 using RawDeal.Models;
 using RawDealView.Options;
 using RawDeal.Models.Superstars;
+using RawDeal.Utilities;
+
 namespace RawDeal.Controllers;
 public class SuperstarAbilityController
 {
@@ -70,21 +72,18 @@ public class SuperstarAbilityController
 
     public void ResetAbilityUsage(Player player)
     {
-        // Primero verifica si 'player' es null.
-        if (player == null)
-        {
-            Console.WriteLine("El jugador proporcionado es null y no se puede resetear su habilidad.");
-            return;
-        }
-        
-        // Luego verifica si 'Superstar' dentro de 'player' es null.
-        if (player.Superstar == null)
-        {
-            Console.WriteLine($"El Superstar del jugador {player.Superstar.Name} es null y no se puede resetear su habilidad.");
-            return;
-        }
+        if (!HasValidSuperstar(player)) return;
+
+        ResetPlayerSuperstarAbility(player);
+    }
     
-        // Ahora es seguro resetear la habilidad.
+    private bool HasValidSuperstar(Player player)
+    {
+        return player.HasValidSuperstar();
+    }
+
+    private void ResetPlayerSuperstarAbility(Player player)
+    {
         player.Superstar.MarkAbilityAsUnused();
     }
     

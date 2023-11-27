@@ -2,7 +2,7 @@ using RawDealView;
 using RawDeal.Models;
 using RawDeal.Exceptions;
 using RawDeal.Models.Effects;
-using RawDeal.Interfaces;
+using RawDeal.Observer;
 using RawDeal.Models.Reversals;
 using RawDeal.Utilities;
 using RawDealView.Options;
@@ -21,16 +21,12 @@ public class CardPlayController
     private Player Opponent { get; set; }
     private List<Card> PlayableCards { get; set; }
     private int SelectedPlayIndex { get; set; }
-
-    private bool IsEffectActive { get; set; } = false;
-    private SelectedEffect CurrentSelectedEffect { get; set; }
-    
     private int SelectedReversalIndex { get; set; }
 public CardPlayController(View view)
     {
         _view = view;
         _effectCatalog = new EffectCatalog(view);
-        _eventManager = EventManager.GetInstance();
+        _eventManager = EventManager.Instance;
         _reversalCatalog = new ReversalCatalog(view);
         _playerActionsController = new PlayerActionsController(view);
     }
@@ -38,9 +34,7 @@ public CardPlayController(View view)
     {
         InitializePlayers(firstPlayer, secondPlayer);
         if (AttemptToPlayCard())
-        {
             TryingExecuteCardPlay();
-        }
     }
     private void InitializePlayers(Player firstPlayer, Player secondPlayer)
     {
@@ -73,7 +67,8 @@ public CardPlayController(View view)
     }
     private Play GetSelectedPlay()
     {
-        List<Play> playablePlays = PlayUtility.GetPlayablePlays(CurrentPlayer.GetHand(), CurrentPlayer.Fortitude);
+        List<Card> playerHand = CurrentPlayer.GetHand();
+        List<Play> playablePlays = PlayUtility.GetPlayablePlays(playerHand, CurrentPlayer.Fortitude);
         return playablePlays[SelectedPlayIndex];
     }
 
@@ -91,7 +86,6 @@ public CardPlayController(View view)
         Card playedCard = GetPlayedCard();
         string playedAs = GetPlayedAs();
         Effect cardEffect = _effectCatalog.GetEffectBy(playedCard.Title, playedAs);
-        Console.WriteLine("El ringarea del player es " + CurrentPlayer.GetRingArea().Count);
         bool hasLost = cardEffect.Apply(CurrentPlayer, Opponent, GetPlayedCard());
         if (hasLost)
             EndGame(CurrentPlayer);
@@ -99,76 +93,18 @@ public CardPlayController(View view)
     private void TryingExecuteCardPlay()
     {
         AnnounceAttemptToPlayCard();
-        ConditionsDueJockeyingForPosition();
         if (CheckIfIsPossibleToUseAReversal())
-        {
             _eventManager.Notify("CardReversedByHand", "CardReversedByHand", Opponent);
-        }
         else
         {
             AnnounceSuccessfulCardPlay();
-            CheckIfThePlayedCardIsJockeyingForPosition();
             ApplyCardEffect();
-            
         }
-    }
-
-    private void CheckIfThePlayedCardIsJockeyingForPosition()
-    {
-        Card playedCard = GetPlayedCard();
-        if (playedCard.Title == "Jockeying for Position")
-        {
-            SelectedEffect selectedEffect = _view.AskUserToSelectAnEffectForJockeyForPosition(CurrentPlayer.Superstar.Name);
-            CurrentSelectedEffect = selectedEffect;
-            IsEffectActive = true;
-        }
-    }
-
-    private void ConditionsDueJockeyingForPosition()
-    {
-        if (IsEffectActive)
-        {
-            switch (CurrentSelectedEffect)
-            {
-                case SelectedEffect.NextGrappleIsPlus4D:
-                    Card playedCard = GetPlayedCard();
-                    if (playedCard.Subtypes.Contains("Grapple"))
-                    {
-                        playedCard.IncrementDamage(int.Parse(playedCard.Damage), 4);
-                    }
-                    break;
-            }
-        }
-    }
-
-    public void ReturnToNormalState(Card card)
-    {
-        Console.WriteLine("llegamos a este punto");
-        Console.WriteLine("Cuanto vale este selected effect? " + CurrentSelectedEffect);
-        if (IsEffectActive)
-            
-            switch (CurrentSelectedEffect)
-            {
-                case SelectedEffect.NextGrappleIsPlus4D:
-                    Console.WriteLine("La played card es: " + card.Title);
-                    if (card.Subtypes.Contains("Grapple"))
-                    {
-                        Console.WriteLine("ACA SIONO");
-                        card.DecrementDamage(int.Parse(card.Damage), 4);
-                    }
-                    break;
-            }
-    }
-
-    private void InstantiateTheNormalEffectState()
-    {
-        IsEffectActive = false;
     }
     
     private bool CheckIfIsPossibleToUseAReversal()
     {
         Card playedCard = GetPlayedCard();
-        Console.WriteLine("el damage de este playedCard es " + playedCard.Damage);
         playedCard.SetPlayedAs(GetPlayedAs());
         List<Card> reversalsListCards = CanReverseDamageByHand(Opponent, playedCard);
         List<String> formattedReversalCards = PlayUtility.GetFormattedReversalCards(reversalsListCards);
@@ -184,59 +120,57 @@ public CardPlayController(View view)
     
     private void PerformReversalActions(Card playedCard, Card reversalCard)
     {
+        AnnounceReversal(playedCard);
+        int damageValue = ParseDamage(reversalCard);
+        ApplyEffectsBasedOnDamage(reversalCard, damageValue, playedCard);
+        RestoreOriginalDamageValue(reversalCard);
+        CheckForEndGameCondition();
+    }
+
+    private void AnnounceReversal(Card playedCard)
+    {
         List<Card> reversalsListCards = CanReverseDamageByHand(Opponent, playedCard);
         List<String> formattedReversalCards = PlayUtility.GetFormattedReversalCards(reversalsListCards);
-        _view.SayThatPlayerReversedTheCard(Opponent.Superstar.Name, formattedReversalCards[SelectedReversalIndex]);
-
-        // Guarda el daño original en caso de que sea necesario revertirlo después de aplicar los efectos.
-        string originalDamage = reversalCard.Damage;
-        try
-        {
-            int damageValue = ParseDamage(reversalCard, playedCard);
-            if (damageValue > 0)
-            {
-                ApplyCardEffectDueReversal(reversalCard);
-                _playerActionsController.AddCardToRingsideDueReversedByHand(CurrentPlayer, playedCard);
-            }
-            else
-            {
-                _playerActionsController.AddCardToRingsideDueReversedByHand(CurrentPlayer, playedCard);
-                _playerActionsController.RemoveCardFromHandDueToReversal(Opponent, reversalCard);  
-            }
-        }
-        finally
-        {
-            // Restablece el daño de la carta de reversión a su valor original, que es "#".
-            reversalCard.TemporarilySetDamage(originalDamage);
-        }
-
-        if (CurrentPlayer.HasEmptyArsenal())
-        {
-            EndGame(Opponent);
-        }
+        string opponentName = Opponent.Superstar.Name;
+        _view.SayThatPlayerReversedTheCard(opponentName, formattedReversalCards[SelectedReversalIndex]);
     }
     
-    private int ParseDamage(Card reversalCard, Card playedCard)
+    private void ApplyEffectsBasedOnDamage(Card reversalCard, int damageValue, Card playedCard)
     {
-        if (reversalCard.Damage == "#")
+        if (damageValue > 0)
         {
-            reversalCard.TemporarilySetDamage(playedCard.Damage);
-            return int.Parse(playedCard.Damage);
-        }
-        else if (int.TryParse(reversalCard.Damage, out int reversalDamageValue))
-        {
-            return reversalDamageValue;
+            ApplyCardEffectDueReversal(reversalCard);
+            _playerActionsController.AddCardToRingsideDueReversedByHand(CurrentPlayer, playedCard);
         }
         else
         {
-            throw new InvalidDamageValueException();
+            _playerActionsController.AddCardToRingsideDueReversedByHand(CurrentPlayer, playedCard);
+            _playerActionsController.RemoveCardFromHandDueToReversal(Opponent, reversalCard);  
         }
     }
-    
-    private bool SelectedReversal(List<string> reversalCards)
+
+    private void RestoreOriginalDamageValue(Card card)
     {
-        SelectedReversalIndex = _view.AskUserToSelectAReversal(Opponent.Superstar.Name, reversalCards);
-        return SelectedReversalIndex != -1;
+        card.TemporarilySetDamage(card.Damage);
+    }
+
+    private void CheckForEndGameCondition()
+    {
+        if (CurrentPlayer.HasEmptyArsenal())
+            EndGame(Opponent);
+    }
+    
+    private int ParseDamage(Card reversalCard)
+    {
+        if (int.TryParse(reversalCard.Damage, out int reversalDamageValue))
+            return reversalDamageValue;
+        throw new InvalidDamageValueException();
+    }
+    
+    private void SelectedReversal(List<string> reversalCards)
+    {
+        string opponentName = Opponent.Superstar.Name;
+        SelectedReversalIndex = _view.AskUserToSelectAReversal(opponentName, reversalCards);
     }
     
     private List<Card> CanReverseDamageByHand(Player player, Card playedCard)
@@ -246,49 +180,41 @@ public CardPlayController(View view)
 
         foreach (Card cardInHand in cardsInHand)
         {
-            try
+            if (IsPossibleToUseReversal(cardInHand))
             {
-                if (IsPossibleToUseReversal(cardInHand))
-                {
-                    Reversal reversalCard = _reversalCatalog.GetReversalBy(cardInHand.Title);
-                    if (reversalCard.CanReverseFromHand(playedCard, cardInHand, player))
-                    {
-                        possibleReversals.Add(cardInHand);
-                    }
-                }
-            }
-            catch (KeyNotFoundException)
-            {
-                continue;
+                Reversal reversalCard = _reversalCatalog.GetReversalBy(cardInHand.Title);
+                if (reversalCard.CanReverseFromHand(playedCard, cardInHand, player))
+                    possibleReversals.Add(cardInHand);
             }
         }
         return possibleReversals;
     }
-    
+
     private bool IsPossibleToUseReversal(Card cardInHand)
     {
         try
         {
-            Reversal potentialReversal = _reversalCatalog.GetReversalBy(cardInHand.Title);
+            _reversalCatalog.GetReversalBy(cardInHand.Title);
             return true;
         }
-        catch (KeyNotFoundException)
+        catch (ReversalNotFoundException)
         {
             return false;
         }
     }
-
-        
+    
     private void AnnounceAttemptToPlayCard()
     {
         string selectedPlay =
             PlayUtility.GetFormattedPlayableCards(PlayableCards, CurrentPlayer.Fortitude)[SelectedPlayIndex];
         _view.SayThatPlayerIsTryingToPlayThisCard(CurrentPlayer.Superstar.Name, selectedPlay);
     }
+    
     private void AnnounceSuccessfulCardPlay()
     {
         _view.SayThatPlayerSuccessfullyPlayedACard();
     }
+    
     private void EndGame(Player winningPlayer)
     {
         _eventManager.Notify("EndGame", "EndGame", winningPlayer);

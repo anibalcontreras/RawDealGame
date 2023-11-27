@@ -6,13 +6,6 @@ public static class DeckValidator
 {
     private const int DeckSize = 60;
     private const int MaxNonUniqueCards = 3;
-    private enum CardSubtype
-    {
-        Unique,
-        SetUp,
-        Heel,
-        Face
-    }
     public static (bool IsValid, List<string> Errors) IsValidDeck(Deck deck, 
         Dictionary<string, Superstar> allAvailableSuperstars)
     {
@@ -20,24 +13,23 @@ public static class DeckValidator
 
         if (!HasCorrectCardCount(deck))
         {
-            errors.Add("El mazo no tiene el conteo correcto de cartas o falta el Superstar.");
+            errors.Add("The deck does not have the correct card count or is missing the Superstar.");
         }
 
         if (!HasValidRepeatedCards(deck))
         {
-            errors.Add("El mazo tiene cartas repetidas inválidas.");
+            errors.Add("The deck has invalid repeated cards.");
         }
 
         if (!HasEitherHeelOrFaceCards(deck))
         {
-            errors.Add("El mazo tiene ambas cartas, 'heel' y 'face'.");
+            errors.Add("The deck contains both 'heel' and 'face' cards.");
         }
 
         if (!SuperstarCanUseExclusiveCards(deck, allAvailableSuperstars))
         {
-            errors.Add("El mazo tiene cartas que no pertenecen al Superstar seleccionado.");
+            errors.Add("The deck contains cards that do not belong to the selected Superstar.");
         }
-
         return (errors.Count == 0, errors);
     }
 
@@ -52,20 +44,26 @@ public static class DeckValidator
 
         foreach (var group in cardGroups)
         {
-            var card = group.First();
-        
-            if (card.Subtypes.Contains(CardSubtype.Unique.ToString()) && group.Count() > 1)
-            {
-                return false;
-            }
-
-            if (!card.Subtypes.Contains(CardSubtype.SetUp.ToString()) && group.Count() > MaxNonUniqueCards)
+            if (IsUniqueAndRepeated(group) || IsNotSetUpAndExceedsMax(group))
             {
                 return false;
             }
         }
         return true;
     }
+    
+    private static bool IsUniqueAndRepeated(IGrouping<string, Card> group)
+    {
+        var card = group.First();
+        return card.Subtypes.Contains(CardSubtype.Unique.ToString()) && group.Count() > 1;
+    }
+
+    private static bool IsNotSetUpAndExceedsMax(IGrouping<string, Card> group)
+    {
+        var card = group.First();
+        return !card.Subtypes.Contains(CardSubtype.SetUp.ToString()) && group.Count() > MaxNonUniqueCards;
+    }
+
     private static bool HasEitherHeelOrFaceCards(Deck deck)
     {
         bool hasHeel = deck.Cards.Any(card => card.Subtypes.Contains(CardSubtype.Heel.ToString()));
@@ -107,5 +105,4 @@ public static class DeckValidator
     {
         return allAvailableSuperstars.ContainsKey(subtype) && subtype != superstarLogo;
     }
-
 }   

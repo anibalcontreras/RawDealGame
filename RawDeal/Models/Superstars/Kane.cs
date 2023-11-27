@@ -19,10 +19,10 @@ public class Kane : Superstar
             string playerName = player.Superstar.Name;
             string opponentName = opponent.Superstar.Name;
             string superstarAbility = player.Superstar.SuperstarAbility;
-
+            Card playedCard = SuperstarCard;
             _view.SayThatPlayerIsGoingToUseHisAbility(playerName, superstarAbility);
             _view.SayThatSuperstarWillTakeSomeDamage(opponentName, 1);
-            _playerActionsController.ReceiveDamage(opponent, 1, null, player);
+            _playerActionsController.ReceiveDamage(opponent, 1, playedCard, player);
             MarkAbilityAsUsed();
         }
     }
